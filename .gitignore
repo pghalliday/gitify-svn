@@ -1,0 +1,7 @@
+/gitify-svn-working/
+/lib/
+/coverage/
+/.alarmist/
+/.nyc_output/
+/node_modules/
+
