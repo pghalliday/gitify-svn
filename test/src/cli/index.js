@@ -5,7 +5,9 @@ import {
 } from '../../../src/constants';
 
 const repository = 'repository';
-const argv = [repository];
+const username = 'username';
+const password = 'password';
+const argv = ['-u', username, '-p', password, repository];
 
 describe('gitify', () => {
   describe('cli', () => {
@@ -20,6 +22,8 @@ describe('gitify', () => {
     it('should execute the command', () => {
       gitify.exec.should.have.been.calledWithMatch({
         repository,
+        username,
+        password,
         workingDir: DEFAULT_WORKING_DIR,
       });
     });

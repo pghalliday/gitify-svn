@@ -6,14 +6,38 @@ import _ from 'lodash';
 import {
   DEFAULT_WORKING_DIR,
   NO_REPOSITORY_ERROR,
+  NO_USERNAME_ERROR,
+  NO_PASSWORD_ERROR,
   MULTIPLE_WORKING_DIRECTORIES_ERROR,
   USAGE_TEXT,
 } from '../../../src/constants';
 
 const workingDir = 'working dir';
 const repository = 'repository';
+const username = 'username';
+const password = 'password';
 
 const noRepository = [
+];
+
+const justRequiredOptions = [
+  '-u',
+  username,
+  '-p',
+  password,
+  repository,
+];
+
+const noUsername = [
+  '-p',
+  password,
+  repository,
+];
+
+const noPassword = [
+  '-u',
+  username,
+  repository,
 ];
 
 const fullVersionOption = [
@@ -36,19 +60,23 @@ const aliasHelpOption = [
   '-?',
 ];
 
-const noOptions = [
-  repository,
-];
-
 const shortOptions = [
   '-w',
   workingDir,
+  '-u',
+  username,
+  '-p',
+  password,
   repository,
 ];
 
 const fullOptions = [
   '--working-dir',
   workingDir,
+  '--username',
+  username,
+  '--password',
+  password,
   repository,
 ];
 
@@ -57,6 +85,10 @@ const workingDirectories = [
   workingDir,
   '--working-dir',
   workingDir,
+  '--username',
+  username,
+  '--password',
+  password,
   repository,
 ];
 
@@ -78,6 +110,14 @@ describe('gitify', () => {
           'with no repository': {
             argv: noRepository,
             error: NO_REPOSITORY_ERROR,
+          },
+          'with no username': {
+            argv: noUsername,
+            error: NO_USERNAME_ERROR,
+          },
+          'with no password': {
+            argv: noPassword,
+            error: NO_PASSWORD_ERROR,
           },
           'with multiple working directories specified': {
             argv: workingDirectories,
@@ -135,8 +175,8 @@ describe('gitify', () => {
         });
 
         _.forEach({
-          'with no options': {
-            argv: noOptions,
+          'with just required options': {
+            argv: justRequiredOptions,
             workingDir: DEFAULT_WORKING_DIR,
           },
           'with short options': {
@@ -155,6 +195,14 @@ describe('gitify', () => {
 
             it('should set the repository', () => {
               options.repository.should.eql(repository);
+            });
+
+            it('should set the username', () => {
+              options.username.should.eql(username);
+            });
+
+            it('should set the password', () => {
+              options.password.should.eql(password);
             });
 
             it('should set the working directory', () => {

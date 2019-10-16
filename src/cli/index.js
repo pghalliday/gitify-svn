@@ -8,7 +8,7 @@ module.exports = function(argv) {
   const opts = parse(argv);
   // istanbul ignore next
   if (opts.version) {
-    console.log(require('../../../package.json').version);
+    console.log(require('../../package.json').version);
     process.exit(0);
   }
   // istanbul ignore next

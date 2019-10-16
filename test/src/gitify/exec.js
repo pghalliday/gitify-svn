@@ -4,6 +4,8 @@ import {
 
 const repository = 'repository';
 const workingDir = 'workingDir';
+const username = 'username';
+const password = 'password';
 
 describe('gitify', () => {
   describe('gitify', () => {
@@ -12,9 +14,13 @@ describe('gitify', () => {
         (await exec({
           repository,
           workingDir,
+          username,
+          password,
         })).should.eql({
           repository,
           workingDir,
+          username,
+          password,
         });
       });
     });
