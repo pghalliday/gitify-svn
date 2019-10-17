@@ -1,6 +1,9 @@
 import {
   exec,
 } from '../../../src/gitify/exec';
+import {
+  SVN_MOCK,
+} from '../../helpers/constants';
 
 const repository = 'repository';
 const workingDir = 'workingDir';
@@ -16,6 +19,7 @@ describe('src', () => {
           workingDir,
           username,
           password,
+          binary: SVN_MOCK,
         })).should.eql({
           repository,
           workingDir,

@@ -1,6 +1,9 @@
 import {
   spawn,
 } from 'child_process';
+import {
+  parse as parseInfo,
+} from './info';
 
 const SVN = 'svn';
 
@@ -11,7 +14,6 @@ export class Svn {
     password,
     repository,
   }) {
-    console.log(binary);
     this.binary = binary;
     this.repository = repository,
     this.args = ['--username', username, '--password', password];
@@ -40,10 +42,15 @@ export class Svn {
   }
 
   log({revision}) {
-    return this.exec(['log', this.repository, '-v', '-r', revision]);
+    return this.exec(['log', encodeURI(this.repository), '-v', '-r', revision]);
   }
 
-  info({path, revision}) {
-    return this.exec(['info', `${this.repository}${path}@${revision}`]);
+  async info({path, revision}) {
+    return parseInfo(
+        await this.exec([
+          'info',
+          encodeURI(`${this.repository}${path}@${revision}`),
+        ])
+    );
   }
 }

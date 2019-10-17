@@ -3,13 +3,15 @@ import {
 } from '../../../../src/gitify/svn';
 import {
   SVN_MOCK,
+  DIRECTORY_INFO,
+  PARSED_DIRECTORY_INFO,
 } from '../../../helpers/constants';
 
 const username = 'username';
 const password = 'password';
-const repository = 'repository';
+const repository = 'the repository';
 const revision = 'revision';
-const path = 'path';
+const path = 'the path';
 
 describe('src', () => {
   describe('gitify', () => {
@@ -57,21 +59,29 @@ describe('src', () => {
             const output = await svn.log({revision});
             output.should.eql(
                 // eslint-disable-next-line max-len
-                `--username username --password password log ${repository} -v -r ${revision}\n`
+                `--username username --password password log ${encodeURI(repository)} -v -r ${revision}\n`
             );
           });
         });
 
         describe('info', () => {
+          before(() => {
+            sinon.stub(svn, 'exec').callsFake(() => DIRECTORY_INFO);
+          });
+
+          after(() => {
+            svn.exec.restore();
+          });
+
           it('should request info for the path at the revision', async () => {
-            const output = await svn.info({
+            const info = await svn.info({
               path,
               revision,
             });
-            output.should.eql(
-                // eslint-disable-next-line max-len
-                `--username username --password password info ${repository}${path}@${revision}\n`
+            svn.exec.should.have.been.calledWith(
+                ['info', `${encodeURI(repository+path)}@${revision}`]
             );
+            info.should.eql(PARSED_DIRECTORY_INFO);
           });
         });
       });
