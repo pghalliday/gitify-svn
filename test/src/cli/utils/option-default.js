@@ -1,6 +1,6 @@
 import optionDefault from '../../../../src/cli/utils/option-default';
 
-describe('gitify', () => {
+describe('src', () => {
   describe('cli', () => {
     describe('utils', () => {
       describe('optionDefault', () => {

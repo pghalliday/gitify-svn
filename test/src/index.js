@@ -1,5 +1,5 @@
 import * as gitify from '../../src';
-describe('gitify', () => {
+describe('src', () => {
   it('should export exec', () => {
     gitify.exec.should.be.ok;
   });

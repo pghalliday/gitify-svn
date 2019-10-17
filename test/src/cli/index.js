@@ -9,7 +9,7 @@ const username = 'username';
 const password = 'password';
 const argv = ['-u', username, '-p', password, repository];
 
-describe('gitify', () => {
+describe('src', () => {
   describe('cli', () => {
     before(async () => {
       sinon.stub(gitify, 'exec').callsFake(() => Promise.resolve());

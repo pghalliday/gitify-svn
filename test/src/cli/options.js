@@ -94,7 +94,7 @@ const workingDirectories = [
 
 let options;
 
-describe('gitify', () => {
+describe('src', () => {
   describe('cli', () => {
     describe('options', () => {
       describe('#help', () => {

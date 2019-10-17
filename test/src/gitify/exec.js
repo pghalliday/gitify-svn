@@ -7,7 +7,7 @@ const workingDir = 'workingDir';
 const username = 'username';
 const password = 'password';
 
-describe('gitify', () => {
+describe('src', () => {
   describe('gitify', () => {
     describe('exec', () => {
       it('should do something', async () => {
