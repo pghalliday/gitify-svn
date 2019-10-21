@@ -4,6 +4,14 @@ import {
 import {
   parse as parseInfo,
 } from './info';
+import {
+  parse as parseLog,
+} from './log';
+
+export {
+  ACTION,
+  NODE_KIND,
+} from './shared';
 
 const SVN = 'svn';
 
@@ -41,8 +49,17 @@ export class Svn {
     });
   }
 
-  log({revision}) {
-    return this.exec(['log', encodeURI(this.repository), '-v', '-r', revision]);
+  async log({revision}) {
+    return parseLog(
+        await this.exec([
+          'log',
+          encodeURI(this.repository),
+          '--xml',
+          '-v',
+          '-r',
+          revision,
+        ])
+    );
   }
 
   async info({path, revision}) {
@@ -50,6 +67,7 @@ export class Svn {
         await this.exec([
           'info',
           encodeURI(`${this.repository}${path}@${revision}`),
+          '--xml',
         ])
     );
   }

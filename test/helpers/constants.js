@@ -1,29 +1,31 @@
 /* eslint-disable max-len */
 
 import {
-  NODE_KIND_DIRECTORY,
-} from '../../src/gitify/svn/info';
-
-import {
-  ADD,
-  DELETE,
-  MODIFY,
-  REPLACE,
-} from '../../src/gitify/svn/log';
+  NODE_KIND,
+  ACTION,
+} from '../../src/gitify/svn';
 
 export const SVN_MOCK = './test/mocks/svn.sh';
 export const DIRECTORY_INFO = `
-svn
-Path: trunk
-URL: http://path/to/repos/trunk
-Relative URL: ^/trunk
-Repository Root: http://path/to/repos
-Repository UUID: UUID-UUID-UUID
-Revision: 100
-Node Kind: directory
-Last Changed Author: developer@company.com
-Last Changed Rev: 50
-Last Changed Date: 2004-06-25 17:50:25 +0200 (Fri, 25 Jun 2004)
+<?xml version="1.0" encoding="UTF-8"?>
+<info>
+<entry
+   revision="100"
+   kind="dir"
+   path="trunk">
+<url>http://path/to/repos/trunk</url>
+<relative-url>^/trunk</relative-url>
+<repository>
+<root>http://path/to/repos</root>
+<uuid>UUID-UUID-UUID</uuid>
+</repository>
+<commit
+   revision="50">
+<author>developer@company.com</author>
+<date>2004-06-25T15:50:25.449194Z</date>
+</commit>
+</entry>
+</info>
 `;
 export const PARSED_DIRECTORY_INFO = {
   path: 'trunk',
@@ -32,94 +34,201 @@ export const PARSED_DIRECTORY_INFO = {
   repositoryRoot: 'http://path/to/repos',
   repositoryUuid: 'UUID-UUID-UUID',
   revision: 100,
-  nodeKind: NODE_KIND_DIRECTORY,
+  nodeKind: NODE_KIND.DIRECTORY,
   lastChangedAuthor: 'developer@company.com',
   lastChangedRev: 50,
-  lastChangedDate: new Date('2004-06-25T17:50:25.000+0200'),
+  lastChangedDate: new Date('2004-06-25T15:50:25.449Z'),
 };
-export const UNEXPECTED_INFO = `
-svn
-Path: trunk
-URL: http://path/to/repos/trunk
-Relative URL: ^/trunk
-Repository Root: http://path/to/repos
-Repository UUID: UUID-UUID-UUID
-Revision: 100
-Node Kind: directory
-Last Changed Author: developer@company.com
-Last Changed Rev: 50
-Last Changed Date: 2004-06-25 17:50:25 +0200 (Fri, 25 Jun 2004)
-Unexpected Field: Boo
+export const UNEXPECTED_INFO_KEYS = `
+<?xml version="1.0" encoding="UTF-8"?>
+<info>
+<entry
+   revision="100"
+   kind="dir"
+   path="trunk">
+<url>http://path/to/repos/trunk</url>
+<relative-url>^/trunk</relative-url>
+<repository>
+<root>http://path/to/repos</root>
+<uuid>UUID-UUID-UUID</uuid>
+</repository>
+<commit
+   revision="50">
+<author>developer@company.com</author>
+<date>2004-06-25T15:50:25.449194Z</date>
+</commit>
+<unexpected>boo</unexpected>
+</entry>
+</info>
+`;
+export const UNEXPECTED_INFO_KEY = `
+<?xml version="1.0" encoding="UTF-8"?>
+<info>
+<entry
+   revision="100"
+   kind="dir"
+   path="trunk">
+<relative-url>^/trunk</relative-url>
+<repository>
+<root>http://path/to/repos</root>
+<uuid>UUID-UUID-UUID</uuid>
+</repository>
+<commit
+   revision="50">
+<author>developer@company.com</author>
+<date>2004-06-25T15:50:25.449194Z</date>
+</commit>
+<unexpected>boo</unexpected>
+</entry>
+</info>
 `;
 export const UNKNOWN_INFO = `
-svn
-Path: trunk
-URL: http://path/to/repos/trunk
-Relative URL: ^/trunk
-Repository Root: http://path/to/repos
-Repository UUID: UUID-UUID-UUID
-Revision: 100
-Node Kind: unknown
-Last Changed Author: developer@company.com
-Last Changed Rev: 50
-Last Changed Date: 2004-06-25 17:50:25 +0200 (Fri, 25 Jun 2004)
+<?xml version="1.0" encoding="UTF-8"?>
+<info>
+<entry
+   revision="100"
+   kind="unknown"
+   path="trunk">
+<url>http://path/to/repos/trunk</url>
+<relative-url>^/trunk</relative-url>
+<repository>
+<root>http://path/to/repos</root>
+<uuid>UUID-UUID-UUID</uuid>
+</repository>
+<commit
+   revision="50">
+<author>developer@company.com</author>
+<date>2004-06-25T15:50:25.449194Z</date>
+</commit>
+</entry>
+</info>
 `;
 const LOG_MESSAGE =`Comment line 1
 Comment line 2
 Comment line 3
 `;
 export const VALID_LOG = `
-------------------------------------------------------------------------
-r100 | developer@company.com | 2004-06-25 17:50:25 +0200 (Fri, 25 Jun 2004) | 3 lines
-Changed paths:
-   A /new-file
-   D /replaced-from-file
-   A /moved-to-file (from /moved-from-file:75)
-   D /moved-from-file
-   M /another-modified-file
-   R /replaced-file
-   M /modified-file
-   R /replaced-to-file (from /replaced-from-file:50)
-
-${LOG_MESSAGE}------------------------------------------------------------------------
-
+<?xml version="1.0" encoding="UTF-8"?>
+<log>
+<logentry
+   revision="100">
+<author>developer@company.com</author>
+<date>2012-08-15T15:14:57.365053Z</date>
+<paths>
+<path
+   kind="dir"
+   action="A">/new-path</path>
+<path
+   kind="dir"
+   action="D">/replaced-from-path</path>
+<path
+   kind="dir"
+   copyfrom-path="/moved-from-path"
+   copyfrom-rev="75"
+   action="A">/moved-to-path</path>
+<path
+   kind="dir"
+   action="D">/moved-from-path</path>
+<path
+   kind="dir"
+   action="M">/another-modified-path</path>
+<path
+   kind="dir"
+   action="R">/replaced-path</path>
+<path
+   kind="dir"
+   action="M">/modified-path</path>
+<path
+   kind="dir"
+   copyfrom-path="/replaced-from-path"
+   copyfrom-rev="50"
+   action="R">/replaced-to-path</path>
+</paths>
+<msg>${LOG_MESSAGE}</msg>
+</logentry>
+</log>
 `;
 export const PARSED_VALID_LOG = {
   revision: 100,
   author: 'developer@company.com',
-  date: new Date('2004-06-25T17:50:25.000+0200'),
+  date: new Date('2012-08-15T15:14:57.365Z'),
   message: LOG_MESSAGE,
   changes: [{
-    action: ADD,
-    path: '/new-file',
+    action: ACTION.ADD,
+    path: '/new-path',
+    kind: NODE_KIND.DIRECTORY,
   }, {
-    action: DELETE,
-    path: '/replaced-from-file',
+    action: ACTION.DELETE,
+    path: '/replaced-from-path',
+    kind: NODE_KIND.DIRECTORY,
   }, {
-    action: ADD,
-    path: '/moved-to-file',
-    from: {
-      path: '/moved-from-file',
-      revision: 75,
-    },
+    action: ACTION.ADD,
+    path: '/moved-to-path',
+    kind: NODE_KIND.DIRECTORY,
+    copyFromPath: '/moved-from-path',
+    copyFromRevision: 75,
   }, {
-    action: DELETE,
-    path: '/moved-from-file',
+    action: ACTION.DELETE,
+    path: '/moved-from-path',
+    kind: NODE_KIND.DIRECTORY,
   }, {
-    action: MODIFY,
-    path: '/another-modified-file',
+    action: ACTION.MODIFY,
+    path: '/another-modified-path',
+    kind: NODE_KIND.DIRECTORY,
   }, {
-    action: REPLACE,
-    path: '/replaced-file',
+    action: ACTION.REPLACE,
+    path: '/replaced-path',
+    kind: NODE_KIND.DIRECTORY,
   }, {
-    action: MODIFY,
-    path: '/modified-file',
+    action: ACTION.MODIFY,
+    path: '/modified-path',
+    kind: NODE_KIND.DIRECTORY,
   }, {
-    action: REPLACE,
-    path: '/replaced-to-file',
-    from: {
-      path: '/replaced-from-file',
-      revision: 50,
-    },
+    action: ACTION.REPLACE,
+    path: '/replaced-to-path',
+    kind: NODE_KIND.DIRECTORY,
+    copyFromPath: '/replaced-from-path',
+    copyFromRevision: 50,
   }],
 };
+export const INVALID_ACTION_LOG = `
+<?xml version="1.0" encoding="UTF-8"?>
+<log>
+<logentry
+   revision="100">
+<author>developer@company.com</author>
+<date>2012-08-15T15:14:57.365053Z</date>
+<paths>
+<path
+   kind="dir"
+   action="A">/new-path</path>
+<path
+   kind="dir"
+   action="X">/replaced-from-path</path>
+<path
+   kind="dir"
+   copyfrom-path="/moved-from-path"
+   copyfrom-rev="75"
+   action="A">/moved-to-path</path>
+<path
+   kind="dir"
+   action="D">/moved-from-path</path>
+<path
+   kind="dir"
+   action="M">/another-modified-path</path>
+<path
+   kind="dir"
+   action="R">/replaced-path</path>
+<path
+   kind="dir"
+   action="M">/modified-path</path>
+<path
+   kind="dir"
+   copyfrom-path="/replaced-from-path"
+   copyfrom-rev="50"
+   action="R">/replaced-to-path</path>
+</paths>
+<msg>${LOG_MESSAGE}</msg>
+</logentry>
+</log>
+`;

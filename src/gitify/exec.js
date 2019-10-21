@@ -2,6 +2,7 @@ import {
   Svn,
 } from './svn';
 
+// istanbul ignore next
 export async function exec({
   repository,
   workingDir,
@@ -15,7 +16,7 @@ export async function exec({
     repository,
     binary,
   });
-  const log = await svn.log({revision: 53644});
+  const log = await svn.info({path: '', revision: 'HEAD'});
   console.log(log);
   // first check if we are looking at the root of the repository
   // if not then offer to switch to the root of the repository or exit

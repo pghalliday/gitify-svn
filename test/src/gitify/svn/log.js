@@ -4,6 +4,7 @@ import {
 import {
   VALID_LOG,
   PARSED_VALID_LOG,
+  INVALID_ACTION_LOG,
 } from '../../../helpers/constants';
 
 describe('src', () => {
@@ -11,21 +12,15 @@ describe('src', () => {
     describe('svn', () => {
       describe('log', () => {
         describe('parse', () => {
-          it('should parse valid log', () => {
-            parse(VALID_LOG).should.eql(PARSED_VALID_LOG);
+          it('should parse valid log', async () => {
+            (await parse(VALID_LOG)).should.eql(PARSED_VALID_LOG);
           });
 
-          // it('should error on unexpected info output field', () => {
-            // expect(() => parse(UNEXPECTED_INFO)).to.throw(
-                // 'Unknown info field: Unexpected Field'
-            // );
-          // });
-
-          // it('should error on unknown node kind', () => {
-            // expect(() => parse(UNKNOWN_INFO)).to.throw(
-                // 'Unknown info Node Kind: unknown'
-            // );
-          // });
+          it('should error on invalid action', async () => {
+            await parse(INVALID_ACTION_LOG).should.be.rejectedWith(
+                'Unknown action: X'
+            );
+          });
         });
       });
     });

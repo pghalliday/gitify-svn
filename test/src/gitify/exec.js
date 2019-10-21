@@ -13,7 +13,7 @@ const password = 'password';
 describe('src', () => {
   describe('gitify', () => {
     describe('exec', () => {
-      it('should do something', async () => {
+      it.skip('should do something', async () => {
         (await exec({
           repository,
           workingDir,

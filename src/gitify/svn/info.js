@@ -1,104 +1,100 @@
-import _ from 'lodash';
+import {
+  Parser,
+} from 'xml2js';
+import {
+  nodeKindTranslator,
+  dateTranslator,
+  intTranslator,
+  schemaMap,
+  schemaSingleEntryList,
+  schemaValue,
+} from './shared';
 
-export const NODE_KIND_DIRECTORY = 'DIR';
+const parser = new Parser();
 
-const nodeKinds = {
-  'directory': NODE_KIND_DIRECTORY,
-};
+const kind = schemaValue({
+  field: 'nodeKind',
+  translator: nodeKindTranslator,
+});
 
-const identityTranslator = (value) => value;
-const dateTranslator = (value) => new Date(value);
-const intTranslator = (value) => parseInt(value);
-const nodeKindTranslator = (value) => {
-  const nodeKind = nodeKinds[value];
-  if (!nodeKind) throw new Error(`Unknown info Node Kind: ${value}`);
-  return nodeKind;
-};
+const path = schemaValue({
+  field: 'path',
+});
 
-const fields = {
-  'Last Changed Author': {
-    field: 'lastChangedAuthor',
-    translator: identityTranslator,
-  },
-  'Last Changed Date': {
-    field: 'lastChangedDate',
-    translator: dateTranslator,
-  },
-  'Last Changed Rev': {
-    field: 'lastChangedRev',
-    translator: intTranslator,
-  },
-  'Node Kind': {
-    field: 'nodeKind',
-    translator: nodeKindTranslator,
-  },
-  'Path': {
-    field: 'path',
-    translator: identityTranslator,
-  },
-  'Relative URL': {
-    field: 'relativeUrl',
-    translator: identityTranslator,
-  },
-  'Repository Root': {
-    field: 'repositoryRoot',
-    translator: identityTranslator,
-  },
-  'Repository UUID': {
-    field: 'repositoryUuid',
-    translator: identityTranslator,
-  },
-  'Revision': {
-    field: 'revision',
-    translator: intTranslator,
-  },
-  'URL': {
-    field: 'url',
-    translator: identityTranslator,
-  },
-};
+const revision = schemaValue({
+  field: 'revision',
+  translator: intTranslator,
+});
 
-function getLine(lines) {
-  const newline = lines.indexOf('\n');
-  if (newline !== -1) {
-    return [
-      lines.substring(0, newline),
-      lines.substring(newline + 1),
-    ];
-  }
-  return [
-    lines,
-  ];
-}
+const entryAttributes = schemaMap({
+  kind,
+  path,
+  revision,
+});
 
-function getValue(line) {
-  const colon = line.indexOf(':');
-  if (colon !== -1) {
-    return [
-      line.substring(0, colon),
-      line.substring(colon + 2),
-    ];
-  }
-  return [
-    line,
-  ];
-}
+const relativeUrl = schemaSingleEntryList(schemaValue({
+  field: 'relativeUrl',
+}));
 
-export function parse(lines) {
-  const info = {};
-  while (true) {
-    let line;
-    [line, lines] = getLine(lines);
-    const [field, value] = getValue(line);
-    if (value) {
-      const knownField = fields[field];
-      if (knownField) {
-        info[knownField.field] = knownField.translator(value);
-      } else {
-        throw new Error(`Unknown info field: ${field}`);
-      }
-    }
-    if (_.isUndefined(lines)) break;
-  }
+const url = schemaSingleEntryList(schemaValue({
+  field: 'url',
+}));
+
+const repositoryRoot = schemaSingleEntryList(schemaValue({
+  field: 'repositoryRoot',
+}));
+
+const repositoryUuid = schemaSingleEntryList(schemaValue({
+  field: 'repositoryUuid',
+}));
+
+const repository = schemaSingleEntryList(schemaMap({
+  root: repositoryRoot,
+  uuid: repositoryUuid,
+}));
+
+const lastChangedRev = schemaValue({
+  field: 'lastChangedRev',
+  translator: intTranslator,
+});
+
+const commitAttributes = schemaMap({
+  revision: lastChangedRev,
+});
+
+const author = schemaSingleEntryList(schemaValue({
+  field: 'lastChangedAuthor',
+}));
+
+const date = schemaSingleEntryList(schemaValue({
+  field: 'lastChangedDate',
+  translator: dateTranslator,
+}));
+
+const commit = schemaSingleEntryList(schemaMap({
+  '$': commitAttributes,
+  author,
+  date,
+}));
+
+const entry = schemaSingleEntryList(schemaMap({
+  '$': entryAttributes,
+  'relative-url': relativeUrl,
+  url,
+  repository,
+  commit,
+}));
+
+const info = schemaMap({
+  entry,
+});
+
+const root = schemaMap({
+  info,
+});
+
+export async function parse(xml) {
+  const parsed = await parser.parseStringPromise(xml);
+  const info = root(parsed);
   return info;
 }

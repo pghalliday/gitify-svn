@@ -1,45 +1,110 @@
-import _ from 'lodash';
+import {
+  Parser,
+} from 'xml2js';
+import {
+  actionTranslator,
+  nodeKindTranslator,
+  dateTranslator,
+  intTranslator,
+  schemaMap,
+  schemaSingleEntryList,
+  schemaValue,
+  schemaList,
+  schemaTest,
+} from './shared';
 
-export const ADD = 'add';
-export const DELETE = 'delete';
-export const MODIFY = 'modify';
-export const REPLACE = 'replace';
+const parser = new Parser();
 
-const actions = {
-  'A': ADD,
-  'D': DELETE,
-  'M': MODIFY,
-  'R': REPLACE,
-};
+const revision = schemaValue({
+  field: 'revision',
+  translator: intTranslator,
+});
 
-const identityTranslator = (value) => value;
-const dateTranslator = (value) => new Date(value);
-const intTranslator = (value) => parseInt(value);
-const actionTranslator = (value) => {
-  const action = actions[value];
-  if (!action) throw new Error(`Unknown log action: ${value}`);
-  return action;
-};
+const logEntryAttributes = schemaMap({
+  revision,
+});
 
-function getLine(lines) {
-  const newline = lines.indexOf('\n');
-  if (newline !== -1) {
-    return [
-      lines.substring(0, newline),
-      lines.substring(newline + 1),
-    ];
-  }
-  return [
-    lines,
-  ];
-}
+const author = schemaSingleEntryList(schemaValue({
+  field: 'author',
+}));
 
-export function parse(lines) {
-  const log = {};
-  while (true) {
-    let line;
-    [line, lines] = getLine(lines);
-    if (_.isUndefined(lines)) break;
-  }
+const date = schemaSingleEntryList(schemaValue({
+  field: 'date',
+  translator: dateTranslator,
+}));
+
+const pathField = schemaValue({
+  field: 'path',
+});
+
+const copyFromPath = schemaValue({
+  field: 'copyFromPath',
+});
+
+const copyFromRevision = schemaValue({
+  field: 'copyFromRevision',
+  translator: intTranslator,
+});
+
+const kind = schemaValue({
+  field: 'kind',
+  translator: nodeKindTranslator,
+});
+
+const action = schemaValue({
+  field: 'action',
+  translator: actionTranslator,
+});
+
+const pathAttributes = schemaTest([{
+  test: (data) => data['copyfrom-path'],
+  schema: schemaMap({
+    'copyfrom-path': copyFromPath,
+    'copyfrom-rev': copyFromRevision,
+    kind,
+    action,
+  }),
+}, {
+  schema: schemaMap({
+    kind,
+    action,
+  }),
+}]);
+
+const path = schemaList({
+  field: 'changes',
+  schema: schemaMap({
+    '_': pathField,
+    '$': pathAttributes,
+  }),
+});
+
+const paths = schemaSingleEntryList(schemaMap({
+  path,
+}));
+
+const msg = schemaSingleEntryList(schemaValue({
+  field: 'message',
+}));
+
+const logentry = schemaSingleEntryList(schemaMap({
+  '$': logEntryAttributes,
+  author,
+  date,
+  paths,
+  msg,
+}));
+
+const log = schemaMap({
+  logentry,
+});
+
+const root = schemaMap({
+  log,
+});
+
+export async function parse(xml) {
+  const parsed = await parser.parseStringPromise(xml);
+  const log = root(parsed);
   return log;
 }

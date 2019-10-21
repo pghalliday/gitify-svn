@@ -5,6 +5,8 @@ import {
   SVN_MOCK,
   DIRECTORY_INFO,
   PARSED_DIRECTORY_INFO,
+  VALID_LOG,
+  PARSED_VALID_LOG,
 } from '../../../helpers/constants';
 
 const username = 'username';
@@ -55,12 +57,25 @@ describe('src', () => {
         });
 
         describe('log', () => {
-          it('should request a verbose log for the revision', async () => {
-            const output = await svn.log({revision});
-            output.should.eql(
-                // eslint-disable-next-line max-len
-                `--username username --password password log ${encodeURI(repository)} -v -r ${revision}\n`
-            );
+          before(() => {
+            sinon.stub(svn, 'exec').callsFake(() => VALID_LOG);
+          });
+
+          after(() => {
+            svn.exec.restore();
+          });
+
+          it('should request a verbose xml log for the revision', async () => {
+            const log = await svn.log({revision});
+            svn.exec.should.have.been.calledWith([
+              'log',
+              `${encodeURI(repository)}`,
+              '--xml',
+              '-v',
+              '-r',
+              revision,
+            ]);
+            log.should.eql(PARSED_VALID_LOG);
           });
         });
 
@@ -73,13 +88,13 @@ describe('src', () => {
             svn.exec.restore();
           });
 
-          it('should request info for the path at the revision', async () => {
+          it('should request xml info for the path and revision', async () => {
             const info = await svn.info({
               path,
               revision,
             });
             svn.exec.should.have.been.calledWith(
-                ['info', `${encodeURI(repository+path)}@${revision}`]
+                ['info', `${encodeURI(repository+path)}@${revision}`, '--xml']
             );
             info.should.eql(PARSED_DIRECTORY_INFO);
           });
