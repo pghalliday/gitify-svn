@@ -4,41 +4,15 @@ import {
 } from '../../../src/cli/options';
 import _ from 'lodash';
 import {
-  DEFAULT_WORKING_DIR,
-  NO_REPOSITORY_ERROR,
-  NO_USERNAME_ERROR,
-  NO_PASSWORD_ERROR,
-  MULTIPLE_WORKING_DIRECTORIES_ERROR,
   USAGE_TEXT,
+  DEFAULT_SVN_BINARY,
 } from '../../../src/constants';
 
-const workingDir = 'working dir';
 const repository = 'repository';
 const username = 'username';
 const password = 'password';
-
-const noRepository = [
-];
-
-const justRequiredOptions = [
-  '-u',
-  username,
-  '-p',
-  password,
-  repository,
-];
-
-const noUsername = [
-  '-p',
-  password,
-  repository,
-];
-
-const noPassword = [
-  '-u',
-  username,
-  repository,
-];
+const workingDir = 'workingDir';
+const svnBinary = 'svnBinary';
 
 const fullVersionOption = [
   '--version',
@@ -60,36 +34,33 @@ const aliasHelpOption = [
   '-?',
 ];
 
+const noOptions = [
+];
+
 const shortOptions = [
-  '-w',
-  workingDir,
+  '-r',
+  repository,
   '-u',
   username,
   '-p',
   password,
-  repository,
+  '-w',
+  workingDir,
+  '-s',
+  svnBinary,
 ];
 
 const fullOptions = [
-  '--working-dir',
-  workingDir,
+  '--repository',
+  repository,
   '--username',
   username,
   '--password',
   password,
-  repository,
-];
-
-const workingDirectories = [
   '--working-dir',
   workingDir,
-  '--working-dir',
-  workingDir,
-  '--username',
-  username,
-  '--password',
-  password,
-  repository,
+  '--svn-binary',
+  svnBinary,
 ];
 
 let options;
@@ -107,35 +78,6 @@ describe('src', () => {
 
       describe('#parse', () => {
         _.forEach({
-          'with no repository': {
-            argv: noRepository,
-            error: NO_REPOSITORY_ERROR,
-          },
-          'with no username': {
-            argv: noUsername,
-            error: NO_USERNAME_ERROR,
-          },
-          'with no password': {
-            argv: noPassword,
-            error: NO_PASSWORD_ERROR,
-          },
-          'with multiple working directories specified': {
-            argv: workingDirectories,
-            error: MULTIPLE_WORKING_DIRECTORIES_ERROR,
-          },
-        }, (value, key) => {
-          describe(key, () => {
-            before(() => {
-              options = parse(value.argv);
-            });
-
-            it('should set the error', () => {
-              options.error.should.eql(value.error);
-            });
-          });
-        });
-
-        _.forEach({
           'with the full version option': fullVersionOption,
           'with the short version option': shortVersionOption,
         }, (value, key) => {
@@ -146,10 +88,6 @@ describe('src', () => {
 
             it('should set the version flag to true', () => {
               options.version.should.eql(true);
-            });
-
-            it('should not set the error', () => {
-              expect(options.error).to.not.be.ok;
             });
           });
         });
@@ -167,59 +105,35 @@ describe('src', () => {
             it('should set the help flag to true', () => {
               options.help.should.eql(true);
             });
-
-            it('should not set the error', () => {
-              expect(options.error).to.not.be.ok;
-            });
           });
         });
 
         _.forEach({
-          'with just required options': {
-            argv: justRequiredOptions,
-            workingDir: DEFAULT_WORKING_DIR,
-          },
-          'with short options': {
-            argv: shortOptions,
-            workingDir,
-          },
-          'with full options': {
-            argv: fullOptions,
-            workingDir,
-          },
+          'with the full options': fullOptions,
+          'with the short options': shortOptions,
         }, (value, key) => {
           describe(key, () => {
             before(() => {
-              options = parse(value.argv);
+              options = parse(value);
             });
 
-            it('should set the repository', () => {
+            it('should set options', () => {
               options.repository.should.eql(repository);
-            });
-
-            it('should set the username', () => {
               options.username.should.eql(username);
-            });
-
-            it('should set the password', () => {
               options.password.should.eql(password);
+              options['working-dir'].should.eql(workingDir);
+              options['svn-binary'].should.eql(svnBinary);
             });
+          });
+        });
 
-            it('should set the working directory', () => {
-              options.workingDir.should.eql(value.workingDir);
-            });
+        describe('with no options', () => {
+          before(() => {
+            options = parse(noOptions);
+          });
 
-            it('should set the help flag to false', () => {
-              options.help.should.eql(false);
-            });
-
-            it('should set the version flag to false', () => {
-              options.version.should.eql(false);
-            });
-
-            it('should not set the error', () => {
-              expect(options.error).to.not.be.ok;
-            });
+          it('should set default options', () => {
+            options['svn-binary'].should.eql(DEFAULT_SVN_BINARY);
           });
         });
       });

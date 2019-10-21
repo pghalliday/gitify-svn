@@ -19,12 +19,6 @@ module.exports = function(argv) {
     process.stdout.write(help());
     process.exit(0);
   }
-  // istanbul ignore next
-  if (opts.error) {
-    console.log('ERROR: ' + opts.error);
-    process.stdout.write(help());
-    process.exit(1);
-  }
   return gitify.exec(opts)
       .catch(
           // istanbul ignore next

@@ -13,23 +13,21 @@ export {
   NODE_KIND,
 } from './shared';
 
-const SVN = 'svn';
-
 export class Svn {
   constructor({
-    binary = SVN,
+    repository,
     username,
     password,
-    repository,
+    svnBinary,
   }) {
-    this.binary = binary;
+    this.svnBinary = svnBinary;
     this.repository = repository,
     this.args = ['--username', username, '--password', password];
   }
 
   exec(args) {
     return new Promise((resolve, reject) => {
-      const svn = spawn(this.binary, this.args.concat(args));
+      const svn = spawn(this.svnBinary, this.args.concat(args));
       let output = '';
       const appendOutput = (data) => {
         output += data.toString();

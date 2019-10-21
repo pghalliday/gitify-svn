@@ -20,19 +20,10 @@ describe('src', () => {
     describe('svn', () => {
       let svn;
 
-      it('should default to the system svn executable', () => {
-        svn = new Svn({
-          username,
-          password,
-          repository,
-        });
-        svn.binary.should.eql('svn');
-      });
-
       describe('when the svn executable can be found', () => {
         before(() => {
           svn = new Svn({
-            binary: SVN_MOCK,
+            svnBinary: SVN_MOCK,
             username,
             password,
             repository,
@@ -104,7 +95,7 @@ describe('src', () => {
       describe('when the svn executable cannot be found', () => {
         before(() => {
           svn = new Svn({
-            binary: 'invalid-binary',
+            svnBinary: 'invalid-binary',
             username,
             password,
             repository,

@@ -1,13 +1,7 @@
 import cli from '../../../src/cli';
 import gitify from '../../../src';
-import {
-  DEFAULT_WORKING_DIR,
-} from '../../../src/constants';
 
-const repository = 'repository';
-const username = 'username';
-const password = 'password';
-const argv = ['-u', username, '-p', password, repository];
+const argv = [];
 
 describe('src', () => {
   describe('cli', () => {
@@ -20,12 +14,7 @@ describe('src', () => {
     });
 
     it('should execute the command', () => {
-      gitify.exec.should.have.been.calledWithMatch({
-        repository,
-        username,
-        password,
-        workingDir: DEFAULT_WORKING_DIR,
-      });
+      gitify.exec.should.have.been.calledWithMatch({});
     });
   });
 });

@@ -1,49 +1,31 @@
 import minimist from 'minimist';
-import optionDefault from './utils/option-default';
-import _ from 'lodash';
 import cliclopts from 'cliclopts';
 import {
-  DEFAULT_WORKING_DIR,
-  NO_REPOSITORY_ERROR,
-  NO_USERNAME_ERROR,
-  NO_PASSWORD_ERROR,
-  MULTIPLE_WORKING_DIRECTORIES_ERROR,
   USAGE_TEXT,
-  WORKING_DIRECTORY_VAR,
-  USERNAME_VAR,
-  PASSWORD_VAR,
+  DEFAULT_SVN_BINARY,
 } from '../constants';
 
-const defaultUsername = optionDefault(
-    USERNAME_VAR,
-    undefined,
-);
-
-const defaultPassword = optionDefault(
-    PASSWORD_VAR,
-    undefined,
-);
-
-const defaultWorkingDirectory = optionDefault(
-    WORKING_DIRECTORY_VAR,
-    DEFAULT_WORKING_DIR,
-);
-
 const cliOpts = cliclopts([{
+  name: 'repository',
+  abbr: 'r',
+  help: 'The SVN repository root URL',
+}, {
   name: 'username',
   abbr: 'u',
-  default: defaultUsername,
-  help: '(required) The username to use with SVN',
+  help: 'The SVN repository username',
 }, {
   name: 'password',
   abbr: 'p',
-  default: defaultPassword,
-  help: '(required) The password to use with SVN',
+  help: 'The SVN repository password',
 }, {
   name: 'working-dir',
   abbr: 'w',
-  default: defaultWorkingDirectory,
-  help: 'The directory in which to create projects, record progress, etc.',
+  help: 'The working directory',
+}, {
+  name: 'svn-binary',
+  abbr: 's',
+  help: 'The SVN binary to use',
+  default: DEFAULT_SVN_BINARY,
 }, {
   name: 'help',
   abbr: 'h',
@@ -75,36 +57,5 @@ export function parse(argv) {
       help: true,
     };
   }
-  if (parsed['working-dir'] instanceof Array) {
-    return {
-      error: MULTIPLE_WORKING_DIRECTORIES_ERROR,
-    };
-  }
-  const repository = parsed._[0];
-  if (_.isUndefined(repository)) {
-    return {
-      error: NO_REPOSITORY_ERROR,
-    };
-  }
-  const username = parsed['username'];
-  if (_.isUndefined(username)) {
-    return {
-      error: NO_USERNAME_ERROR,
-    };
-  }
-  const password = parsed['password'];
-  if (_.isUndefined(password)) {
-    return {
-      error: NO_PASSWORD_ERROR,
-    };
-  }
-  const workingDir = parsed['working-dir'];
-  return {
-    repository,
-    workingDir,
-    username,
-    password,
-    help: false,
-    version: false,
-  };
+  return parsed;
 };
