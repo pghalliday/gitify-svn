@@ -9,7 +9,6 @@ import inquirer from 'inquirer';
 // istanbul ignore next
 async function resolveRepository({
   repository,
-  workingDir,
   username,
   password,
   binary,
@@ -58,7 +57,6 @@ export async function exec({
 }) {
   const {svn, head} = await resolveRepository({
     repository,
-    workingDir,
     username,
     password,
     binary,
