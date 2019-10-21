@@ -1,9 +1,15 @@
+import {
+  name as packageName,
+  version as packageVersion,
+} from '../package.json';
+export const APPLICATION_NAME = packageName;
+export const APPLICATION_VERSION = packageVersion;
 export const USERNAME_VAR = 'GITIFY_SVN_USERNAME';
 export const PASSWORD_VAR = 'GITIFY_SVN_PASSWORD';
 export const WORKING_DIRECTORY_VAR = 'GITIFY_SVN_WORKING_DIRECTORY';
 export const DEFAULT_WORKING_DIR = 'gitify-svn-working';
 export const USAGE_TEXT = `
-Usage: gitify-svn [options] <repository>
+Usage: ${APPLICATION_NAME} [options] <repository>
 
 Gitifies an SVN repository interactively
 
