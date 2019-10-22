@@ -8,4 +8,3 @@ chai.use(sinonChai);
 chai.use(chaiAsPromised);
 global.expect = chai.expect;
 global.sinon = sinon;
-

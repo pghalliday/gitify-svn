@@ -6,6 +6,9 @@ import {
 import {
   Svn,
 } from './svn';
+import {
+  Progress,
+} from './progress';
 import inquirer from 'inquirer';
 
 // istanbul ignore next
@@ -86,6 +89,7 @@ async function checkRepository({
   return {
     svn,
     head: info.revision,
+    uuid: info.repositoryUuid,
   };
 }
 
@@ -98,16 +102,24 @@ export async function exec({
   ['svn-binary']: svnBinary,
 }) {
   workingDir = await getWorkingDir(workingDir);
-  // TODO: check working directory for progress
+  const progress = new Progress({workingDir});
+  await progress.init();
+  repository = repository || progress.state.repositoryUrl;
   const required = await getRequired({
     repository,
     username,
     password,
   });
-  const {svn, head} = await checkRepository({
+  const {svn, head, uuid} = await checkRepository({
     ...required,
     svnBinary,
   });
+  progress.setRepository({
+    repositoryUrl: svn.repository,
+    repositoryUuid: uuid,
+    headRevision: head,
+  });
+  await progress.revisionProcessed(0);
   // eslint-disable-next-line max-len
   console.log(`Converting ${svn.repository} up to revision ${head} in working directory: ${workingDir}`);
 }
