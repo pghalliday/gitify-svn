@@ -100,12 +100,19 @@ async function processRevision({
   revision,
 }) {
   console.log(`processing revision: ${revision}`);
-  // Get the changes to files
-  const log = await svn.log({revision});
-  console.log(log);
   // Get the changes to properties
   const diffProps = await svn.diffProps({revision});
   console.log(diffProps);
+  // Get the changes to files
+  const log = await svn.log({revision});
+  console.log(log);
+  log.changes.forEach(async (change) => {
+    const info = await svn.info({
+      path: change.path,
+      revision,
+    });
+    console.log(info);
+  });
 }
 
 // istanbul ignore next
