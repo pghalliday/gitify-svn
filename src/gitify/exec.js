@@ -94,6 +94,21 @@ async function checkRepository({
 }
 
 // istanbul ignore next
+async function processRevision({
+  svn,
+  progress,
+  revision,
+}) {
+  console.log(`processing revision: ${revision}`);
+  // Get the changes to files
+  const log = await svn.log({revision});
+  console.log(log);
+  // Get the changes to properties
+  const diffProps = await svn.diffProps({revision});
+  console.log(diffProps);
+}
+
+// istanbul ignore next
 export async function exec({
   repository,
   username,
@@ -124,4 +139,9 @@ export async function exec({
   await progress.revisionProcessed(lastRevision);
   // eslint-disable-next-line max-len
   console.log(`Converting ${svn.repository} up to revision ${head} in working directory: ${workingDir}`);
+  await processRevision({
+    svn,
+    progress,
+    revision: lastRevision + 1,
+  });
 }
