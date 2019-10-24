@@ -127,7 +127,7 @@ export async function exec({
   const progress = new Progress({workingDir});
   await progress.init();
   repository = repository || progress.state.repositoryUrl;
-  const lastRevision = 0 || progress.state.lastRevision;
+  const lastRevision = progress.state.lastRevision || 0;
   const required = await getRequired({
     repository,
     username,
