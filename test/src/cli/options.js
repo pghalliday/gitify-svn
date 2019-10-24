@@ -6,6 +6,7 @@ import _ from 'lodash';
 import {
   USAGE_TEXT,
   DEFAULT_SVN_BINARY,
+  DEFAULT_DEBUG_LEVEL,
 } from '../../../src/constants';
 
 const repository = 'repository';
@@ -13,6 +14,7 @@ const username = 'username';
 const password = 'password';
 const workingDir = 'workingDir';
 const svnBinary = 'svnBinary';
+const debugLevel = 'debugLevel';
 
 const fullVersionOption = [
   '--version',
@@ -48,6 +50,8 @@ const shortOptions = [
   workingDir,
   '-s',
   svnBinary,
+  '-d',
+  debugLevel,
 ];
 
 const fullOptions = [
@@ -61,6 +65,8 @@ const fullOptions = [
   workingDir,
   '--svn-binary',
   svnBinary,
+  '--debug-level',
+  debugLevel,
 ];
 
 let options;
@@ -123,6 +129,7 @@ describe('src', () => {
               options.password.should.eql(password);
               options['working-dir'].should.eql(workingDir);
               options['svn-binary'].should.eql(svnBinary);
+              options['debug-level'].should.eql(debugLevel);
             });
           });
         });
@@ -134,6 +141,7 @@ describe('src', () => {
 
           it('should set default options', () => {
             options['svn-binary'].should.eql(DEFAULT_SVN_BINARY);
+            options['debug-level'].should.eql(DEFAULT_DEBUG_LEVEL);
           });
         });
       });

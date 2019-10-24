@@ -10,6 +10,10 @@ import {
   Progress,
 } from './progress';
 import inquirer from 'inquirer';
+import {
+  setConsoleDebugLevel,
+  logger,
+} from './logger';
 
 // istanbul ignore next
 async function getWorkingDir(workingDir) {
@@ -122,7 +126,9 @@ export async function exec({
   password,
   ['working-dir']: workingDir,
   ['svn-binary']: svnBinary,
+  ['debug-level']: debugLevel,
 }) {
+  setConsoleDebugLevel(debugLevel);
   workingDir = await getWorkingDir(workingDir);
   const progress = new Progress({workingDir});
   await progress.init();

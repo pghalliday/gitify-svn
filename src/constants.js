@@ -6,7 +6,9 @@ export const APPLICATION_NAME = packageName;
 export const APPLICATION_VERSION = packageVersion;
 export const DEFAULT_WORKING_DIR = 'gitify-svn-working';
 export const DEFAULT_SVN_BINARY = 'svn';
+export const DEFAULT_DEBUG_LEVEL = 'error';
 export const PROGRESS_FILE = 'gitify-svn-progress.json';
+export const LOG_FILE = 'gitify-svn.log';
 export const USAGE_TEXT = `
 Usage: ${APPLICATION_NAME} [options]
 

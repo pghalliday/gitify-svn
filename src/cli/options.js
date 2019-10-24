@@ -3,6 +3,7 @@ import cliclopts from 'cliclopts';
 import {
   USAGE_TEXT,
   DEFAULT_SVN_BINARY,
+  DEFAULT_DEBUG_LEVEL,
 } from '../constants';
 
 const cliOpts = cliclopts([{
@@ -37,6 +38,11 @@ const cliOpts = cliclopts([{
   abbr: 'v',
   boolean: true,
   help: 'Show version number',
+}, {
+  name: 'debug-level',
+  abbr: 'd',
+  help: 'Set the debug level for the console',
+  default: DEFAULT_DEBUG_LEVEL,
 }]);
 
 export function help() {
