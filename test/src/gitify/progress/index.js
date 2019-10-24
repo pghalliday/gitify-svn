@@ -3,7 +3,7 @@ import {
   FsMock,
   FS_DIRECTORY,
   FS_FILE,
-} from '../../../helpers/fs';
+} from '../../../mocks/fs';
 import {
   PROGRESS_TEST_EMPTY,
   PROGRESS_TEST_DATA,

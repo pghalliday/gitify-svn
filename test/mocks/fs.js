@@ -5,6 +5,9 @@ import {
 import _ from 'lodash';
 import fs from 'fs';
 import sinon from 'sinon';
+import {
+  Writable,
+} from 'stream';
 
 export const FS_DIRECTORY = 'directory';
 export const FS_FILE = 'file';
@@ -36,6 +39,51 @@ const BASE_STATS = {
   ctime: new Date('2019-10-22T07:58:04.452Z'),
   birthtime: new Date('2019-10-16T12:04:20.949Z'),
 };
+
+class WriteStream extends Writable {
+  constructor(path, paths) {
+    super({
+      decodeStrings: false,
+      emitClose: false,
+    });
+    this.path = path;
+    this.paths = paths;
+    this.emitClose = true;
+  }
+
+  _write(chunk, encoding, cb) {
+    if (encoding !== 'utf8') {
+      cb(new Error(
+          // eslint-disable-next-line max-len
+          `FsMock: WriteStream: _write: only utf8 string chunks are supported: ${encoding}`
+      ));
+      return;
+    }
+    const absPath = resolve(this.path);
+    let entry = this.paths[absPath];
+    if (entry) {
+      if (entry.type === FS_DIRECTORY) {
+        cb(illegalOperationOnDirectoryError(this.path, 'open'));
+        this.emitClose = false;
+        return;
+      }
+    } else {
+      entry = {
+        type: FS_FILE,
+        data: '',
+      };
+      this.paths[absPath] = entry;
+    }
+    entry.data += chunk;
+    cb();
+  }
+
+  _final() {
+    if (this.emitClose) {
+      this.emit('close');
+    }
+  }
+}
 
 class Stats {
   constructor(entry) {
@@ -240,5 +288,19 @@ export class FsMock {
         cb(err);
       }
     });
+  }
+
+  createWriteStream(path) {
+    if (typeof path !== 'string') {
+      throw new Error(
+          `FsMock: createWriteStream: path must be a string: ${path}`
+      );
+    }
+    if (arguments.length > 1) {
+      throw new Error(
+          `FsMock: createWriteStream: too many arguments: ${arguments.length}`
+      );
+    };
+    return new WriteStream(path, this.paths);
   }
 }

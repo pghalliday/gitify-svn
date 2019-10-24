@@ -232,6 +232,196 @@ export const INVALID_ACTION_LOG = `
 </logentry>
 </log>
 `;
+export const VALID_DIFF_PROPS = `
+Index: path/to/directory1
+===================================================================
+--- path/to/directory1  (revision 100)
++++ path/to/directory1  (revision 101)
+
+Property changes on: path/to/directory1
+___________________________________________________________________
+Modified: svn:externals
+## -1,2 +1,2 ##
+ url1 name1
+ url2 name2
+-url3 name3
+-url4 name4
++url5 name5
++url6 name6
+Index: path/to/directory2
+===================================================================
+--- path/to/directory2  (revision 100)
++++ path/to/directory2  (revision 101)
+
+Property changes on: path/to/directory2
+___________________________________________________________________
+Added: svn:externals
+## -1,2 +1,2 ##
++url1 name1
++url2 name2
+Index: path/to/directory3
+===================================================================
+--- path/to/directory3  (revision 100)
++++ path/to/directory3  (revision 101)
+
+Property changes on: path/to/directory3
+___________________________________________________________________
+Deleted: svn:externals
+## -1,2 +1,2 ##
+-url1 name1
+-url2 name2
+`;
+export const PARSED_VALID_DIFF_PROPS = {
+  '/path/to/directory1': {
+    'svn:externals': {
+      added: {
+        name5: 'url5',
+        name6: 'url6',
+      },
+      deleted: {
+        name3: 'url3',
+        name4: 'url4',
+      },
+    },
+  },
+  '/path/to/directory2': {
+    'svn:externals': {
+      added: {
+        name1: 'url1',
+        name2: 'url2',
+      },
+      deleted: {
+      },
+    },
+  },
+  '/path/to/directory3': {
+    'svn:externals': {
+      added: {
+      },
+      deleted: {
+        name1: 'url1',
+        name2: 'url2',
+      },
+    },
+  },
+};
+export const UNKNOWN_DIFF_PROPS = `
+Index: path/to/directory1
+===================================================================
+--- path/to/directory1  (revision 100)
++++ path/to/directory1  (revision 101)
+
+Property changes on: path/to/directory1
+___________________________________________________________________
+Modified: svn:externals
+## -1,2 +1,2 ##
+ url1 name1
+ url2 name2
+-url3 name3
+-url4 name4
++url5 name5
++url6 name6
+Index: path/to/directory2
+===================================================================
+--- path/to/directory2  (revision 100)
++++ path/to/directory2  (revision 101)
+
+Property changes on: path/to/directory2
+___________________________________________________________________
+Added: svn:unknown
+## -1,2 +1,2 ##
++url1 name1
++url2 name2
+Index: path/to/directory3
+===================================================================
+--- path/to/directory3  (revision 100)
++++ path/to/directory3  (revision 101)
+
+Property changes on: path/to/directory3
+___________________________________________________________________
+Deleted: svn:externals
+## -1,2 +1,2 ##
+-url1 name1
+-url2 name2
+`;
+export const INVALID_EXTERNAL_TUPLE_DIFF_PROPS = `
+Index: path/to/directory1
+===================================================================
+--- path/to/directory1  (revision 100)
++++ path/to/directory1  (revision 101)
+
+Property changes on: path/to/directory1
+___________________________________________________________________
+Modified: svn:externals
+## -1,2 +1,2 ##
+ url1 name1
+ url2 name2
+-url3 name3
+-url4 name4
++url5 name5
++url6 name6
+Index: path/to/directory2
+===================================================================
+--- path/to/directory2  (revision 100)
++++ path/to/directory2  (revision 101)
+
+Property changes on: path/to/directory2
+___________________________________________________________________
+Added: svn:externals
+## -1,2 +1,2 ##
++url1 name1 hello
++url2 name2
+Index: path/to/directory3
+===================================================================
+--- path/to/directory3  (revision 100)
++++ path/to/directory3  (revision 101)
+
+Property changes on: path/to/directory3
+___________________________________________________________________
+Deleted: svn:externals
+## -1,2 +1,2 ##
+-url1 name1
+-url2 name2
+`;
+export const INVALID_LINE_PREFIX_DIFF_PROPS = `
+Index: path/to/directory1
+===================================================================
+--- path/to/directory1  (revision 100)
++++ path/to/directory1  (revision 101)
+
+Property changes on: path/to/directory1
+___________________________________________________________________
+Modified: svn:externals
+## -1,2 +1,2 ##
+url1 name1
+ url2 name2
+-url3 name3
+-url4 name4
++url5 name5
++url6 name6
+Index: path/to/directory2
+===================================================================
+--- path/to/directory2  (revision 100)
++++ path/to/directory2  (revision 101)
+
+Property changes on: path/to/directory2
+___________________________________________________________________
+Added: svn:externals
+## -1,2 +1,2 ##
++url1 name1 hello
++url2 name2
+Index: path/to/directory3
+===================================================================
+--- path/to/directory3  (revision 100)
++++ path/to/directory3  (revision 101)
+
+Property changes on: path/to/directory3
+___________________________________________________________________
+Deleted: svn:externals
+## -1,2 +1,2 ##
+-url1 name1
+-url2 name2
+`;
 export const REPOSITORY_URL = 'repositoryUrl';
 export const NEW_REPOSITORY_URL = 'newUrl';
 export const REPOSITORY_UUID = 'repositoryUuid';

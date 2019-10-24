@@ -105,6 +105,7 @@ export async function exec({
   const progress = new Progress({workingDir});
   await progress.init();
   repository = repository || progress.state.repositoryUrl;
+  const lastRevision = 0 || progress.state.lastRevision;
   const required = await getRequired({
     repository,
     username,
@@ -119,7 +120,8 @@ export async function exec({
     repositoryUuid: uuid,
     headRevision: head,
   });
-  await progress.revisionProcessed(0);
+  // force a write of the new repository info to the progress file
+  await progress.revisionProcessed(lastRevision);
   // eslint-disable-next-line max-len
   console.log(`Converting ${svn.repository} up to revision ${head} in working directory: ${workingDir}`);
 }

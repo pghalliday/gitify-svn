@@ -5,3 +5,5 @@
 /.nyc_output/
 /node_modules/
 /report.*.json
+/test.js
+/test.file

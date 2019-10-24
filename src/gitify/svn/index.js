@@ -7,6 +7,13 @@ import {
 import {
   parse as parseLog,
 } from './log';
+import {
+  parse as parseDiffProps,
+} from './diff-props';
+import request from 'request';
+import {
+  createWriteStream,
+} from 'fs';
 
 export {
   ACTION,
@@ -23,6 +30,47 @@ export class Svn {
     this.svnBinary = svnBinary;
     this.repository = repository,
     this.args = ['--username', username, '--password', password];
+    this.auth = {
+      user: username,
+      pass: password,
+    };
+  }
+
+  download({
+    path,
+    revision,
+    destination,
+  }) {
+    return new Promise((resolve, reject) => {
+      const writeStream = createWriteStream(destination);
+      writeStream.on('error', (error) => {
+        reject(error);
+      });
+      let resolution;
+      writeStream.on('close', () => {
+        resolution();
+      });
+      const url = `${this.repository}/!svn/bc/${revision}${path}`;
+      request.get(url, {
+        auth: this.auth,
+      })
+          .on('error', (error) => {
+            reject(error);
+          })
+          .on('response', ({statusCode}) => {
+            if (statusCode === 200) {
+              resolution = () => resolve();
+            } else {
+              resolution = () => reject(
+                  new Error(
+                      // eslint-disable-next-line max-len
+                      `Failed to download file: ${url}: statusCode: ${statusCode}`
+                  )
+              );
+            }
+          })
+          .pipe(writeStream);
+    });
   }
 
   exec(args) {
@@ -66,6 +114,18 @@ export class Svn {
           'info',
           encodeURI(`${this.repository}${path}@${revision}`),
           '--xml',
+        ])
+    );
+  }
+
+  async diffProps({revision}) {
+    return parseDiffProps(
+        await this.exec([
+          'diff',
+          encodeURI(this.repository),
+          '-c',
+          revision,
+          '--properties-only',
         ])
     );
   }
