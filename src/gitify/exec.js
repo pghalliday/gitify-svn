@@ -106,19 +106,24 @@ async function processRevision({
 }) {
   const revision = progress.nextRevision;
   logger.info(`processing revision: ${revision}`);
-  // Get the changes to properties
-  const diffProps = await svn.diffProps({revision});
-  logger.debug(diffProps);
   // Get the changes to files
   const log = await svn.log({revision});
   logger.debug(log);
-  log.changes.forEach(async (change) => {
+  await Promise.all(log.changes.map(async (change) => {
     const info = await svn.info({
       path: change.path,
       revision,
     });
     logger.debug(info);
-  });
+    change.info = info;
+  }));
+  logger.info(log);
+  // Get the changes to properties
+  const diffProps = await svn.diffProps({revision});
+  logger.debug(diffProps);
+  if (Object.keys(diffProps).length > 0) {
+    throw new Error('Not yet supporting changes to properties');
+  }
 }
 
 // istanbul ignore next

@@ -155,6 +155,71 @@ describe('src', () => {
               });
             });
           });
+
+          describe('and add projects', () => {
+            it('should update the state', () => {
+              progress.projectCount.should.eql(0);
+              const name = 'name';
+              const path = '/path/to/project';
+              progress.addProject({
+                name,
+                path,
+              });
+              progress.projects[name].should.eql(path);
+              progress.projectCount.should.eql(1);
+              expect(progress.inProject(
+                  '/path/toadifferentproject'
+              )).to.not.be.ok;
+              progress.inProject(
+                  '/path/to/project'
+              ).should.eql({
+                name,
+                path,
+                relativePath: '',
+              });
+              progress.inProject(
+                  '/path/to/project/file'
+              ).should.eql({
+                name,
+                path,
+                relativePath: 'file',
+              });
+            });
+
+            it('should error if the project exists', () => {
+              const name = 'name';
+              const path1 = '/path/to/project1';
+              const path2 = '/path/to/project2';
+              progress.addProject({
+                name,
+                path: path1,
+              });
+              expect(() => progress.addProject({
+                name,
+                path: path2,
+              })).to.throw(
+                  `Project ${name} already exists with path ${path1}`
+              );
+            });
+
+            it('should error if the project path is in another project', () => {
+              const name1 = 'name1';
+              const name2 = 'name2';
+              const path1 = '/path/to/project';
+              const path2 = '/path/to/project/subproject';
+              progress.addProject({
+                name: name1,
+                path: path1,
+              });
+              expect(() => progress.addProject({
+                name: name2,
+                path: path2,
+              })).to.throw(
+                  // eslint-disable-next-line max-len
+                  `Project ${name2} with path ${path2} would be contained by project ${name1} with path ${path1}`
+              );
+            });
+          });
         });
       });
     });

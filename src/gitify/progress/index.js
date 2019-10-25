@@ -61,6 +61,52 @@ class Progress {
     this.state.headRevision = headRevision;
   }
 
+  addProject({
+    name,
+    path,
+  }) {
+    this.state.projects = this.state.projects || {};
+    const projects = this.state.projects;
+    if (projects[name]) {
+      // eslint-disable-next-line max-len
+      throw new Error(`Project ${name} already exists with path ${projects[name]}`);
+    }
+    const project = this.inProject(path);
+    if (project) {
+      throw new Error(
+          // eslint-disable-next-line max-len
+          `Project ${name} with path ${path} would be contained by project ${project.name} with path ${project.path}`
+      );
+    }
+    projects[name] = path;
+  }
+
+  inProject(subPath) {
+    const projects = this.projects;
+    const names = Object.keys(projects);
+    for (let i = 0; i < names.length; i++) {
+      const projectPath = projects[names[i]];
+      const relativePath = path.relative(projectPath, subPath);
+      if (!relativePath.startsWith('..')) {
+        return {
+          name: names[i],
+          path: projectPath,
+          relativePath,
+        };
+      }
+    }
+    return;
+  }
+
+  get projects() {
+    return this.state.projects || {};
+  }
+
+  get projectCount() {
+    const projects = this.projects;
+    return Object.keys(projects).length;
+  }
+
   get repositoryUrl() {
     return this.state.repositoryUrl;
   }

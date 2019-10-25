@@ -39,10 +39,30 @@ const logger = createLogger({
 });
 
 // istanbul ignore next
-function getLogger(file) {
-  return logger.child({
-    file: path.relative(__dirname, file),
+function overrideHelpers(logger) {
+  Object.keys(logger.levels).forEach((level) => {
+    const original = logger[level].bind(logger);
+    logger[level] = (...args) => {
+      if (args.length === 1) {
+        // We do this so that we can pass in
+        // a single argument that is an object
+        // even if that object contains a message field
+        return original({
+          message: args[0],
+        });
+      } else {
+        return original(...args);
+      }
+    };
   });
+  return logger;
+}
+
+// istanbul ignore next
+function getLogger(file) {
+  return overrideHelpers(logger.child({
+    file: path.relative(__dirname, file),
+  }));
 }
 
 // istanbul ignore next
