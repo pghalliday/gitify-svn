@@ -435,4 +435,5 @@ export const PROGRESS_TEST_DATA = {
   repositoryUuid: REPOSITORY_UUID,
   headRevision: HEAD_REVISION,
   lastRevision: LAST_REVISION,
+  projects: {},
 };

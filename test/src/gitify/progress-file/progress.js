@@ -1,9 +1,3 @@
-import path from 'path';
-import {
-  FsMock,
-  FS_DIRECTORY,
-  FS_FILE,
-} from '../../../mocks/fs';
 import {
   PROGRESS_TEST_DATA,
   NEW_REPOSITORY_URL,
@@ -13,32 +7,18 @@ import {
   NEW_LAST_REVISION,
 } from '../../../helpers/constants';
 import {
-  progress,
-} from '../../../../src/gitify/progress';
-import {
-  PROGRESS_FILE,
-} from '../../../../src/constants';
-
-const workingDir = 'parentPath/workingDir';
+  Progress,
+} from '../../../../src/gitify/progress-file/progress';
 
 describe('src', () => {
   describe('gitify', () => {
-    describe('progress', () => {
-      let fsMock;
+    describe('progress-file', () => {
+      describe('progress', () => {
+        let progress;
 
-      describe('init', () => {
-        describe('when the the progress file does not exist', () => {
-          beforeEach(async () => {
-            fsMock = new FsMock({
-              [workingDir]: {
-                type: FS_DIRECTORY,
-              },
-            });
-            await progress.init(workingDir);
-          });
-
-          afterEach(() => {
-            fsMock.restore();
+        describe('when the the state is undefined', () => {
+          beforeEach(() => {
+            progress = new Progress();
           });
 
           describe('and then call setRepository', () => {
@@ -48,13 +28,6 @@ describe('src', () => {
                 repositoryUuid: NEW_REPOSITORY_UUID,
                 headRevision: NEW_HEAD_REVISION,
               });
-            });
-
-            // eslint-disable-next-line max-len
-            it('should not write the progress file', () => {
-              expect(fsMock.getEntry(
-                  path.join(workingDir, PROGRESS_FILE)
-              )).to.not.be.ok;
             });
 
             describe('and then get repositoryUrl', () => {
@@ -71,41 +44,14 @@ describe('src', () => {
           });
         });
 
-        // eslint-disable-next-line max-len
-        describe('when the progress file does exist', () => {
-          beforeEach(async () => {
-            fsMock = new FsMock({
-              [workingDir]: {
-                type: FS_DIRECTORY,
-              },
-              [path.join(workingDir, PROGRESS_FILE)]: {
-                type: FS_FILE,
-                data: JSON.stringify(PROGRESS_TEST_DATA, null, 2),
-              },
-            });
-            await progress.init(workingDir);
-          });
-
-          afterEach(() => {
-            fsMock.restore();
-          });
-
-          it('should read the progress from the file', () => {
-            const entry = fsMock.getEntry(path.join(workingDir, PROGRESS_FILE));
-            JSON.parse(entry.data).should.eql(PROGRESS_TEST_DATA);
-            progress.state.should.eql(PROGRESS_TEST_DATA);
+        describe('when the state is supplied', () => {
+          beforeEach(() => {
+            progress = new Progress(PROGRESS_TEST_DATA);
           });
 
           describe('and then call revisionProcessed', () => {
-            beforeEach(async () => {
-              await progress.revisionProcessed(NEW_LAST_REVISION);
-            });
-
-            it('should write the progress file', () => {
-              const entry = fsMock.getEntry(
-                  path.join(workingDir, PROGRESS_FILE)
-              );
-              JSON.parse(entry.data).should.eql(progress.state);
+            beforeEach(() => {
+              progress.revisionProcessed(NEW_LAST_REVISION);
             });
 
             describe('and then get lastRevision', () => {
@@ -145,11 +91,7 @@ describe('src', () => {
               });
 
               // eslint-disable-next-line max-len
-              it('should update the state but not write the progress file', () => {
-                const entry = fsMock.getEntry(
-                    path.join(workingDir, PROGRESS_FILE)
-                );
-                JSON.parse(entry.data).should.eql(PROGRESS_TEST_DATA);
+              it('should update the state', () => {
                 progress.repositoryUrl.should.eql(NEW_REPOSITORY_URL);
                 progress.headRevision.should.eql(NEW_HEAD_REVISION);
               });

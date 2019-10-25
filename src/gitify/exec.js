@@ -8,11 +8,13 @@ import {
   initFileLogger,
 } from '../logger';
 import {
+  ACTION,
+  NODE_KIND,
   Svn,
 } from './svn';
 import {
-  progress,
-} from './progress';
+  ProgressFile,
+} from './progress-file';
 import inquirer from 'inquirer';
 
 const logger = getLogger(__filename);
@@ -102,10 +104,12 @@ async function checkRepository({
 // istanbul ignore next
 async function processRevision({
   svn,
-  progress,
+  progressFile,
 }) {
+  const progress = progressFile.progress;
   const revision = progress.nextRevision;
-  logger.info(`processing revision: ${revision}`);
+  // eslint-disable-next-line max-len
+  logger.info(`processing revision: ${revision} (${svn.repository}/!svn/bc/${revision})`);
   // Get the changes to files
   const log = await svn.log({revision});
   logger.debug(log);
@@ -117,13 +121,30 @@ async function processRevision({
     logger.debug(info);
     change.info = info;
   }));
-  logger.info(log);
   // Get the changes to properties
   const diffProps = await svn.diffProps({revision});
   logger.debug(diffProps);
   if (Object.keys(diffProps).length > 0) {
     throw new Error('Not yet supporting changes to properties');
   }
+  // get a list of added directories that do not exist in any project
+  const dirs = log.changes.reduce((dirs, change) => {
+    if (change.action === ACTION.ADD) {
+      if (change.info.nodeKind === NODE_KIND.DIRECTORY) {
+        dirs.push(change.path);
+      }
+    }
+    return dirs;
+  }, []);
+  logger.info(dirs);
+  // Test the added directories that are either not in a project
+  // or at the root of a project (maybe we split into trunk/tags/branches)
+  // If no projects in progress then offer to create a project for the root (/)
+  // Test for removed directories
+  // Test for moved directories
+  // write the progress to the working directory when the revision is processed
+  progress.revisionProcessed(revision);
+  progressFile.save();
 }
 
 // istanbul ignore next
@@ -136,9 +157,9 @@ export async function exec({
 }) {
   workingDir = await getWorkingDir(workingDir);
   initFileLogger(workingDir);
-  await progress.init(workingDir);
-  repository = repository || progress.repositoryUrl;
-  const lastRevision = progress.lastRevision || 0;
+  const progressFile = new ProgressFile(workingDir);
+  await progressFile.load();
+  repository = repository || progressFile.progress.repositoryUrl;
   const required = await getRequired({
     repository,
     username,
@@ -155,11 +176,11 @@ export async function exec({
     headRevision: head,
   });
   // force a write of the new repository info to the progress file
-  await progress.revisionProcessed(lastRevision);
+  await progressFile.save();
   // eslint-disable-next-line max-len
   logger.info(`Converting ${svn.repository} up to revision ${head} in working directory: ${workingDir}`);
   await processRevision({
     svn,
-    progress,
+    progressFile,
   });
 }

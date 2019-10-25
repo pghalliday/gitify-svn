@@ -1,47 +1,30 @@
-import path from 'path';
 import {
-  writeFile,
-  readFile,
-} from 'fs';
-import {
-  promisify,
-} from 'util';
-import {
-  PROGRESS_FILE,
-} from '../../constants';
+  relative,
+} from 'path';
 import {
   getLogger,
 } from '../../logger';
+import {
+  INITIAL_PROGRESS_STATE,
+} from '../../constants';
 
 const logger = getLogger(__filename);
 
-class Progress {
-  async write() {
-    // eslint-disable-next-line max-len
-    logger.debug(`Writing state to progress file: ${this.state.lastRevision}`);
-    await promisify(writeFile)(
-        path.join(this.workingDir, PROGRESS_FILE),
-        JSON.stringify(this.state, null, 2),
-    );
+export class Progress {
+  constructor(state) {
+    logger.debug(state);
+    this.state = state || INITIAL_PROGRESS_STATE;
   }
 
-  async init(workingDir) {
-    this.workingDir = workingDir;
-    const progressFile = path.join(this.workingDir, PROGRESS_FILE);
-    try {
-      logger.debug(`Reading progress file: ${progressFile}`);
-      const json = await promisify(readFile)(progressFile, 'utf8');
-      this.state = JSON.parse(json);
-    } catch (err) {
-      logger.debug(`Error reading progress file: ${err}`);
-      logger.debug('Initialising progress');
-      this.state = {};
-    }
+  export() {
+    return this.state;
   }
 
-  async revisionProcessed(revision) {
-    this.state.lastRevision = revision;
-    await this.write();
+  revisionProcessed(revision) {
+    this.state = {
+      ...this.state,
+      lastRevision: revision,
+    };
   }
 
   setRepository({
@@ -56,16 +39,18 @@ class Progress {
     }
     // eslint-disable-next-line max-len
     logger.debug(`progress: Setting the repository: ${repositoryUrl}: ${repositoryUuid}: ${headRevision}`);
-    this.state.repositoryUrl = repositoryUrl;
-    this.state.repositoryUuid = repositoryUuid;
-    this.state.headRevision = headRevision;
+    this.state = {
+      ...this.state,
+      repositoryUrl: repositoryUrl,
+      repositoryUuid: repositoryUuid,
+      headRevision: headRevision,
+    };
   }
 
   addProject({
     name,
     path,
   }) {
-    this.state.projects = this.state.projects || {};
     const projects = this.state.projects;
     if (projects[name]) {
       // eslint-disable-next-line max-len
@@ -78,7 +63,13 @@ class Progress {
           `Project ${name} with path ${path} would be contained by project ${project.name} with path ${project.path}`
       );
     }
-    projects[name] = path;
+    this.state = {
+      ...this.state,
+      projects: {
+        ...projects,
+        [name]: path,
+      },
+    };
   }
 
   inProject(subPath) {
@@ -86,7 +77,7 @@ class Progress {
     const names = Object.keys(projects);
     for (let i = 0; i < names.length; i++) {
       const projectPath = projects[names[i]];
-      const relativePath = path.relative(projectPath, subPath);
+      const relativePath = relative(projectPath, subPath);
       if (!relativePath.startsWith('..')) {
         return {
           name: names[i],
@@ -99,12 +90,11 @@ class Progress {
   }
 
   get projects() {
-    return this.state.projects || {};
+    return this.state.projects;
   }
 
   get projectCount() {
-    const projects = this.projects;
-    return Object.keys(projects).length;
+    return Object.keys(this.projects).length;
   }
 
   get repositoryUrl() {
@@ -120,8 +110,6 @@ class Progress {
   }
 
   get nextRevision() {
-    return this.state.lastRevision + 1;
+    return this.lastRevision + 1;
   }
 }
-
-export const progress = new Progress;
