@@ -1,4 +1,8 @@
+import mkdirp from 'mkdirp';
 import path from 'path';
+import {
+  promisify,
+} from 'util';
 import {
   createLogger,
   transports,
@@ -47,7 +51,9 @@ function setLogLevel(logLevel) {
 }
 
 // istanbul ignore next
-function initFileLogger(workingDir) {
+async function initFileLogger(workingDir) {
+  logger.debug(`Creating working directory: ${workingDir}`);
+  await promisify(mkdirp)(workingDir);
   logger.add(new transports.File({
     filename: path.join(workingDir, LOG_FILE),
     format: format.combine(

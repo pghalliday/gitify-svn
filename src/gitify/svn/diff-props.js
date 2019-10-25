@@ -1,4 +1,9 @@
 import _ from 'lodash';
+import {
+  getLogger,
+} from '../../logger';
+
+const logger = getLogger(__filename);
 
 const STATE_GET_PATH = {
   'Index: ': (path, state) => {
@@ -95,6 +100,7 @@ function parseLine(line, state) {
 }
 
 export function parse(lines) {
+  logger.debug(lines);
   const state = {
     handler: STATE_GET_PATH,
     diffProps: {},

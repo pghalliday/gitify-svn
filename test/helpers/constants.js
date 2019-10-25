@@ -430,7 +430,6 @@ export const HEAD_REVISION = 300;
 export const NEW_HEAD_REVISION = 400;
 export const LAST_REVISION = 100;
 export const NEW_LAST_REVISION = 200;
-export const PROGRESS_TEST_EMPTY = {};
 export const PROGRESS_TEST_DATA = {
   repositoryUrl: REPOSITORY_URL,
   repositoryUuid: REPOSITORY_UUID,

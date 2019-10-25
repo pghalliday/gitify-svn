@@ -5,12 +5,13 @@ import {
 } from '../constants';
 import {
   getLogger,
+  initFileLogger,
 } from '../logger';
 import {
   Svn,
 } from './svn';
 import {
-  Progress,
+  progress,
 } from './progress';
 import inquirer from 'inquirer';
 
@@ -102,21 +103,21 @@ async function checkRepository({
 async function processRevision({
   svn,
   progress,
-  revision,
 }) {
+  const revision = progress.nextRevision;
   logger.info(`processing revision: ${revision}`);
   // Get the changes to properties
   const diffProps = await svn.diffProps({revision});
-  logger.info(diffProps);
+  logger.debug(diffProps);
   // Get the changes to files
   const log = await svn.log({revision});
-  logger.info(log);
+  logger.debug(log);
   log.changes.forEach(async (change) => {
     const info = await svn.info({
       path: change.path,
       revision,
     });
-    logger.info(info);
+    logger.debug(info);
   });
 }
 
@@ -129,10 +130,10 @@ export async function exec({
   ['svn-binary']: svnBinary,
 }) {
   workingDir = await getWorkingDir(workingDir);
-  const progress = new Progress({workingDir});
-  await progress.init();
-  repository = repository || progress.state.repositoryUrl;
-  const lastRevision = progress.state.lastRevision || 0;
+  initFileLogger(workingDir);
+  await progress.init(workingDir);
+  repository = repository || progress.repositoryUrl;
+  const lastRevision = progress.lastRevision || 0;
   const required = await getRequired({
     repository,
     username,
@@ -154,6 +155,5 @@ export async function exec({
   await processRevision({
     svn,
     progress,
-    revision: lastRevision + 1,
   });
 }

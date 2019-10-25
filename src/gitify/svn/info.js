@@ -9,6 +9,11 @@ import {
   schemaSingleEntryList,
   schemaValue,
 } from './shared';
+import {
+  getLogger,
+} from '../../logger';
+
+const logger = getLogger(__filename);
 
 const parser = new Parser();
 
@@ -94,6 +99,7 @@ const root = schemaMap({
 });
 
 export async function parse(xml) {
+  logger.debug(xml);
   const parsed = await parser.parseStringPromise(xml);
   const info = root(parsed);
   return info;

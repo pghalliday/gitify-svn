@@ -1,4 +1,3 @@
-import mkdirp from 'mkdirp';
 import path from 'path';
 import {
   writeFile,
@@ -11,17 +10,12 @@ import {
   PROGRESS_FILE,
 } from '../../constants';
 import {
-  initFileLogger,
   getLogger,
 } from '../../logger';
 
 const logger = getLogger(__filename);
 
-export class Progress {
-  constructor({workingDir}) {
-    this.workingDir = workingDir;
-  }
-
+class Progress {
   async write() {
     // eslint-disable-next-line max-len
     logger.debug(`Writing state to progress file: ${this.state.lastRevision}`);
@@ -31,10 +25,8 @@ export class Progress {
     );
   }
 
-  async init() {
-    logger.debug(`Creating working directory: ${this.workingDir}`);
-    await promisify(mkdirp)(this.workingDir);
-    initFileLogger(this.workingDir);
+  async init(workingDir) {
+    this.workingDir = workingDir;
     const progressFile = path.join(this.workingDir, PROGRESS_FILE);
     try {
       logger.debug(`Reading progress file: ${progressFile}`);
@@ -68,4 +60,22 @@ export class Progress {
     this.state.repositoryUuid = repositoryUuid;
     this.state.headRevision = headRevision;
   }
+
+  get repositoryUrl() {
+    return this.state.repositoryUrl;
+  }
+
+  get headRevision() {
+    return this.state.headRevision;
+  }
+
+  get lastRevision() {
+    return this.state.lastRevision;
+  }
+
+  get nextRevision() {
+    return this.state.lastRevision + 1;
+  }
 }
+
+export const progress = new Progress;

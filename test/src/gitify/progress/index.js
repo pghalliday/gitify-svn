@@ -5,7 +5,6 @@ import {
   FS_FILE,
 } from '../../../mocks/fs';
 import {
-  PROGRESS_TEST_EMPTY,
   PROGRESS_TEST_DATA,
   NEW_REPOSITORY_URL,
   REPOSITORY_UUID,
@@ -14,7 +13,7 @@ import {
   NEW_LAST_REVISION,
 } from '../../../helpers/constants';
 import {
-  Progress,
+  progress,
 } from '../../../../src/gitify/progress';
 import {
   PROGRESS_FILE,
@@ -25,36 +24,21 @@ const workingDir = 'parentPath/workingDir';
 describe('src', () => {
   describe('gitify', () => {
     describe('progress', () => {
-      let progress;
       let fsMock;
 
-      beforeEach(() => {
-        progress = new Progress({
-          workingDir,
-        });
-      });
-
       describe('init', () => {
-        describe('when the working directory can be created', () => {
+        describe('when the the progress file does not exist', () => {
           beforeEach(async () => {
-            fsMock = new FsMock({});
-            await progress.init();
+            fsMock = new FsMock({
+              [workingDir]: {
+                type: FS_DIRECTORY,
+              },
+            });
+            await progress.init(workingDir);
           });
 
           afterEach(() => {
             fsMock.restore();
-          });
-
-          it('should create the working directory', () => {
-            fsMock.getEntry(workingDir).type.should.eql(FS_DIRECTORY);
-          });
-
-          // eslint-disable-next-line max-len
-          it('should initialise the state without writing the progress file', () => {
-            expect(fsMock.getEntry(
-                path.join(workingDir, PROGRESS_FILE)
-            )).to.not.be.ok;
-            progress.state.should.eql(PROGRESS_TEST_EMPTY);
           });
 
           describe('and then call setRepository', () => {
@@ -67,22 +51,28 @@ describe('src', () => {
             });
 
             // eslint-disable-next-line max-len
-            it('should update the state but not write the progress file', () => {
+            it('should not write the progress file', () => {
               expect(fsMock.getEntry(
                   path.join(workingDir, PROGRESS_FILE)
               )).to.not.be.ok;
-              progress.state.should.eql({
-                ...PROGRESS_TEST_EMPTY,
-                repositoryUrl: NEW_REPOSITORY_URL,
-                repositoryUuid: NEW_REPOSITORY_UUID,
-                headRevision: NEW_HEAD_REVISION,
+            });
+
+            describe('and then get repositoryUrl', () => {
+              it('should return the repository URL', () => {
+                progress.repositoryUrl.should.eql(NEW_REPOSITORY_URL);
+              });
+            });
+
+            describe('and then get headRevision', () => {
+              it('should return the HEAD revision number', () => {
+                progress.headRevision.should.eql(NEW_HEAD_REVISION);
               });
             });
           });
         });
 
         // eslint-disable-next-line max-len
-        describe('if the working directory and progress file already exists', () => {
+        describe('when the progress file does exist', () => {
           beforeEach(async () => {
             fsMock = new FsMock({
               [workingDir]: {
@@ -93,7 +83,7 @@ describe('src', () => {
                 data: JSON.stringify(PROGRESS_TEST_DATA, null, 2),
               },
             });
-            await progress.init();
+            await progress.init(workingDir);
           });
 
           afterEach(() => {
@@ -111,17 +101,22 @@ describe('src', () => {
               await progress.revisionProcessed(NEW_LAST_REVISION);
             });
 
-            it('should update the state and write the progress file', () => {
+            it('should write the progress file', () => {
               const entry = fsMock.getEntry(
                   path.join(workingDir, PROGRESS_FILE)
               );
-              JSON.parse(entry.data).should.eql({
-                ...PROGRESS_TEST_DATA,
-                lastRevision: NEW_LAST_REVISION,
+              JSON.parse(entry.data).should.eql(progress.state);
+            });
+
+            describe('and then get lastRevision', () => {
+              it('should return the last revision number', () => {
+                progress.lastRevision.should.eql(NEW_LAST_REVISION);
               });
-              progress.state.should.eql({
-                ...PROGRESS_TEST_DATA,
-                lastRevision: NEW_LAST_REVISION,
+            });
+
+            describe('and then get nextRevision', () => {
+              it('should return the next revision number', () => {
+                progress.nextRevision.should.eql(NEW_LAST_REVISION + 1);
               });
             });
           });
@@ -155,31 +150,10 @@ describe('src', () => {
                     path.join(workingDir, PROGRESS_FILE)
                 );
                 JSON.parse(entry.data).should.eql(PROGRESS_TEST_DATA);
-                progress.state.should.eql({
-                  ...PROGRESS_TEST_DATA,
-                  repositoryUrl: NEW_REPOSITORY_URL,
-                  headRevision: NEW_HEAD_REVISION,
-                });
+                progress.repositoryUrl.should.eql(NEW_REPOSITORY_URL);
+                progress.headRevision.should.eql(NEW_HEAD_REVISION);
               });
             });
-          });
-        });
-
-        describe('when the working directory cannot be created', () => {
-          beforeEach(() => {
-            fsMock = new FsMock({
-              [workingDir]: {
-                type: FS_FILE,
-              },
-            });
-          });
-
-          afterEach(() => {
-            fsMock.restore();
-          });
-
-          it('should error', async () => {
-            await progress.init().should.be.rejectedWith('EEXIST');
           });
         });
       });

@@ -14,6 +14,11 @@ import request from 'request';
 import {
   createWriteStream,
 } from 'fs';
+import {
+  getLogger,
+} from '../../logger';
+
+const logger = getLogger(__filename);
 
 export {
   ACTION,
@@ -51,6 +56,7 @@ export class Svn {
         resolution();
       });
       const url = `${this.repository}/!svn/bc/${revision}${path}`;
+      logger.debug(`Downloading file from ${url} to ${destination}`);
       request.get(url, {
         auth: this.auth,
       })
@@ -75,7 +81,12 @@ export class Svn {
 
   exec(args) {
     return new Promise((resolve, reject) => {
-      const svn = spawn(this.svnBinary, this.args.concat(args));
+      const allArgs = this.args.concat(args);
+      logger.debug({
+        spawn: this.svnBinary,
+        args: allArgs,
+      });
+      const svn = spawn(this.svnBinary, allArgs);
       let output = '';
       const appendOutput = (data) => {
         output += data.toString();
