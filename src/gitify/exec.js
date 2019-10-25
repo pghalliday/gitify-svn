@@ -139,6 +139,7 @@ export async function exec({
     username,
     password,
   });
+  logger.debug(required);
   const {svn, head, uuid} = await checkRepository({
     ...required,
     svnBinary,
