@@ -4,16 +4,17 @@ import {
   DEFAULT_WORKING_DIR,
 } from '../constants';
 import {
+  getLogger,
+} from '../logger';
+import {
   Svn,
 } from './svn';
 import {
   Progress,
 } from './progress';
 import inquirer from 'inquirer';
-import {
-  setConsoleDebugLevel,
-  logger,
-} from './logger';
+
+const logger = getLogger(__filename);
 
 // istanbul ignore next
 async function getWorkingDir(workingDir) {
@@ -103,19 +104,19 @@ async function processRevision({
   progress,
   revision,
 }) {
-  console.log(`processing revision: ${revision}`);
+  logger.info(`processing revision: ${revision}`);
   // Get the changes to properties
   const diffProps = await svn.diffProps({revision});
-  console.log(diffProps);
+  logger.info(diffProps);
   // Get the changes to files
   const log = await svn.log({revision});
-  console.log(log);
+  logger.info(log);
   log.changes.forEach(async (change) => {
     const info = await svn.info({
       path: change.path,
       revision,
     });
-    console.log(info);
+    logger.info(info);
   });
 }
 
@@ -126,9 +127,7 @@ export async function exec({
   password,
   ['working-dir']: workingDir,
   ['svn-binary']: svnBinary,
-  ['debug-level']: debugLevel,
 }) {
-  setConsoleDebugLevel(debugLevel);
   workingDir = await getWorkingDir(workingDir);
   const progress = new Progress({workingDir});
   await progress.init();
@@ -151,7 +150,7 @@ export async function exec({
   // force a write of the new repository info to the progress file
   await progress.revisionProcessed(lastRevision);
   // eslint-disable-next-line max-len
-  console.log(`Converting ${svn.repository} up to revision ${head} in working directory: ${workingDir}`);
+  logger.info(`Converting ${svn.repository} up to revision ${head} in working directory: ${workingDir}`);
   await processRevision({
     svn,
     progress,

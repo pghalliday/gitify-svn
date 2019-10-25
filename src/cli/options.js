@@ -3,8 +3,14 @@ import cliclopts from 'cliclopts';
 import {
   USAGE_TEXT,
   DEFAULT_SVN_BINARY,
-  DEFAULT_DEBUG_LEVEL,
+  DEFAULT_LOG_LEVEL,
 } from '../constants';
+import {
+  getLogger,
+  setLogLevel,
+} from '../logger';
+
+const logger = getLogger(__filename);
 
 const cliOpts = cliclopts([{
   name: 'repository',
@@ -39,10 +45,10 @@ const cliOpts = cliclopts([{
   boolean: true,
   help: 'Show version number',
 }, {
-  name: 'debug-level',
-  abbr: 'd',
-  help: 'Set the debug level for the console',
-  default: DEFAULT_DEBUG_LEVEL,
+  name: 'log-level',
+  abbr: 'l',
+  help: 'Set the log level for the console and log file',
+  default: DEFAULT_LOG_LEVEL,
 }]);
 
 export function help() {
@@ -53,6 +59,8 @@ export function parse(argv) {
   const parsed = minimist(argv, Object.assign(cliOpts.options(), {
     stopEarly: true,
   }));
+  setLogLevel(parsed['log-level']);
+  logger.debug(JSON.stringify(parsed, null, 2));
   if (parsed.version) {
     return {
       version: true,

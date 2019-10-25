@@ -6,7 +6,7 @@ import _ from 'lodash';
 import {
   USAGE_TEXT,
   DEFAULT_SVN_BINARY,
-  DEFAULT_DEBUG_LEVEL,
+  DEFAULT_LOG_LEVEL,
 } from '../../../src/constants';
 
 const repository = 'repository';
@@ -14,7 +14,7 @@ const username = 'username';
 const password = 'password';
 const workingDir = 'workingDir';
 const svnBinary = 'svnBinary';
-const debugLevel = 'debugLevel';
+const logLevel = 'logLevel';
 
 const fullVersionOption = [
   '--version',
@@ -50,8 +50,8 @@ const shortOptions = [
   workingDir,
   '-s',
   svnBinary,
-  '-d',
-  debugLevel,
+  '-l',
+  logLevel,
 ];
 
 const fullOptions = [
@@ -65,8 +65,8 @@ const fullOptions = [
   workingDir,
   '--svn-binary',
   svnBinary,
-  '--debug-level',
-  debugLevel,
+  '--log-level',
+  logLevel,
 ];
 
 let options;
@@ -129,7 +129,7 @@ describe('src', () => {
               options.password.should.eql(password);
               options['working-dir'].should.eql(workingDir);
               options['svn-binary'].should.eql(svnBinary);
-              options['debug-level'].should.eql(debugLevel);
+              options['log-level'].should.eql(logLevel);
             });
           });
         });
@@ -141,7 +141,7 @@ describe('src', () => {
 
           it('should set default options', () => {
             options['svn-binary'].should.eql(DEFAULT_SVN_BINARY);
-            options['debug-level'].should.eql(DEFAULT_DEBUG_LEVEL);
+            options['log-level'].should.eql(DEFAULT_LOG_LEVEL);
           });
         });
       });

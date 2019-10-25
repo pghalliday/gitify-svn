@@ -8,3 +8,14 @@ chai.use(sinonChai);
 chai.use(chaiAsPromised);
 global.expect = chai.expect;
 global.sinon = sinon;
+
+// override the logger
+import logger from '../../src/logger';
+logger.initFileLogger = () => {};
+logger.getLogger = () => ({
+  error: () => {},
+  warn: () => {},
+  info: () => {},
+  debug: () => {},
+});
+logger.setLogLevel = () => {};

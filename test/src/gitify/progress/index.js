@@ -49,10 +49,12 @@ describe('src', () => {
             fsMock.getEntry(workingDir).type.should.eql(FS_DIRECTORY);
           });
 
-          it('should create the progress file', () => {
-            const entry = fsMock.getEntry(path.join(workingDir, PROGRESS_FILE));
-            entry.type.should.eql(FS_FILE);
-            JSON.parse(entry.data).should.eql(PROGRESS_TEST_EMPTY);
+          // eslint-disable-next-line max-len
+          it('should initialise the state without writing the progress file', () => {
+            expect(fsMock.getEntry(
+                path.join(workingDir, PROGRESS_FILE)
+            )).to.not.be.ok;
+            progress.state.should.eql(PROGRESS_TEST_EMPTY);
           });
 
           describe('and then call setRepository', () => {
@@ -66,10 +68,9 @@ describe('src', () => {
 
             // eslint-disable-next-line max-len
             it('should update the state but not write the progress file', () => {
-              const entry = fsMock.getEntry(
+              expect(fsMock.getEntry(
                   path.join(workingDir, PROGRESS_FILE)
-              );
-              JSON.parse(entry.data).should.eql(PROGRESS_TEST_EMPTY);
+              )).to.not.be.ok;
               progress.state.should.eql({
                 ...PROGRESS_TEST_EMPTY,
                 repositoryUrl: NEW_REPOSITORY_URL,
