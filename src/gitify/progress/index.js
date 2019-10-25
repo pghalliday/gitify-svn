@@ -4,7 +4,9 @@ import {
   writeFile,
   readFile,
 } from 'fs';
-import promisify from '../utils/promisify';
+import {
+  promisify,
+} from 'util';
 import {
   PROGRESS_FILE,
 } from '../../constants';
