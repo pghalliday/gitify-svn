@@ -49,8 +49,33 @@ const handleExternalChange = (field) => (text, state) => {
   if (tuple.length != 2) {
     throw new Error(`diff-props: invalid external tuple: ${text}`);
   }
+  const atParts = tuple[0].split('@');
+  let revision;
+  if (atParts.length > 1) {
+    const lastPart = atParts.pop();
+    if (lastPart !== '') {
+      revision = parseInt(lastPart);
+    }
+  }
+  const url = atParts.join('@');
   const changes = state.diffProps[state.path][state.property];
-  changes[field][tuple[1]] = tuple[0];
+  const name = tuple[1];
+  let change;
+  if (revision) {
+    change = {
+      url,
+      revision,
+    };
+  } else {
+    change = url;
+  }
+  changes[field][name] = change;
+  // if both added and deleted then move to modified
+  if (changes.added[name] && changes.deleted[name]) {
+    changes.modified[name] = changes.added[name];
+    delete changes.added[name];
+    delete changes.deleted[name];
+  }
 };
 
 const STATE_GET_EXTERNAL_CHANGES_PROPERTY_OR_PATH = {
@@ -68,6 +93,7 @@ const properties = {
     init: () => ({
       added: {},
       deleted: {},
+      modified: {},
     }),
   },
 };

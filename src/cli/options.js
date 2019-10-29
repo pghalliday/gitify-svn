@@ -15,15 +15,15 @@ const logger = getLogger(__filename);
 const cliOpts = cliclopts([{
   name: 'repository',
   abbr: 'r',
-  help: 'The SVN repository root URL',
+  help: 'The SVN repository root URL to start with',
 }, {
   name: 'username',
   abbr: 'u',
-  help: 'The SVN repository username',
+  help: 'The SVN username',
 }, {
   name: 'password',
   abbr: 'p',
-  help: 'The SVN repository password',
+  help: 'The SVN password',
 }, {
   name: 'working-dir',
   abbr: 'w',

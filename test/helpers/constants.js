@@ -245,9 +245,9 @@ Modified: svn:externals
  url1 name1
  url2 name2
 -url3 name3
--url4 name4
-+url5 name5
-+url6 name6
+-url4@123 name4
++url5@test@ name5
++url6@test@234 name6
 Index: path/to/directory2
 ===================================================================
 --- path/to/directory2  (revision 100)
@@ -257,6 +257,7 @@ Property changes on: path/to/directory2
 ___________________________________________________________________
 Added: svn:externals
 ## -1,2 +1,2 ##
+-url3 name1
 +url1 name1
 +url2 name2
 Index: path/to/directory3
@@ -275,22 +276,32 @@ export const PARSED_VALID_DIFF_PROPS = {
   '/path/to/directory1': {
     'svn:externals': {
       added: {
-        name5: 'url5',
-        name6: 'url6',
+        name5: 'url5@test',
+        name6: {
+          url: 'url6@test',
+          revision: 234,
+        },
       },
       deleted: {
         name3: 'url3',
-        name4: 'url4',
+        name4: {
+          url: 'url4',
+          revision: 123,
+        },
+      },
+      modified: {
       },
     },
   },
   '/path/to/directory2': {
     'svn:externals': {
       added: {
-        name1: 'url1',
         name2: 'url2',
       },
       deleted: {
+      },
+      modified: {
+        name1: 'url1',
       },
     },
   },
@@ -301,6 +312,8 @@ export const PARSED_VALID_DIFF_PROPS = {
       deleted: {
         name1: 'url1',
         name2: 'url2',
+      },
+      modified: {
       },
     },
   },
