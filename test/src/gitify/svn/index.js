@@ -1,6 +1,4 @@
-import {
-  Svn,
-} from '../../../../src/gitify/svn';
+import Svn from '../../../../src/gitify/svn';
 import {
   SVN_MOCK,
   DIRECTORY_INFO,
@@ -261,6 +259,14 @@ describe('src', () => {
               '--properties-only',
             ]);
             diffProps.should.eql(PARSED_VALID_DIFF_PROPS);
+          });
+        });
+
+        describe('revision', () => {
+          it('should throw a not implemented error', async () => {
+            await svn.revision({
+              revision: 1,
+            }).should.be.rejectedWith('Svn: revision: not yet implemented');
           });
         });
       });

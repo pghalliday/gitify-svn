@@ -8,16 +8,12 @@ import {
   initFileLogger,
 } from '../logger';
 import {
-  ACTION,
-  NODE_KIND,
   Svn,
 } from './svn';
 import {
   ProgressFile,
 } from './progress-file';
 import inquirer from 'inquirer';
-import Revision from './revision';
-import firstProject from './scenarios/first-project';
 
 const logger = getLogger(__filename);
 

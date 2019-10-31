@@ -1,55 +1,69 @@
-export default class Project {
-  static async create({
-    git,
-    svnRepository,
-    svnPath,
-    name,
-  }) {
-    const project = new Project({
-      git,
+import {
+  getLogger,
+} from '../../logger';
+
+const logger = getLogger(__filename);
+
+export default function projectFactory({
+  Git,
+}) {
+  return class Project {
+    static async create({
       svnRepository,
       svnPath,
       name,
-    });
-    await project.init();
-    return project;
-  }
-
-  constructor({
-    git,
-    svnRepository,
-    svnPath,
-    name,
-    exported,
-  }) {
-    if (exported) {
-      this.import(exported);
-    } else {
-      this.svnRepository = svnRepository;
-      this.svnPath = svnPath;
-      this.name = name;
+    }) {
+      // eslint-disable-next-line max-len
+      logger.debug(`Creating a new project: ${svnRepository}: ${svnPath}: ${name}`);
+      const project = new Project({
+        svnRepository,
+        svnPath,
+        name,
+      });
+      await project._init();
+      return project;
     }
-    this.git = git.create({
-      folder: this.svnRepository,
-      name: this.name,
-    });
-  }
 
-  import(exported) {
-    this.svnRepository = exported.svnRepository;
-    this.svnPath = exported.svnPath;
-    this.name = exported.name;
-  }
+    constructor({
+      svnRepository,
+      svnPath,
+      name,
+      exported,
+    }) {
+      if (exported) {
+        this._import(exported);
+      } else {
+        this.svnRepository = svnRepository;
+        this.svnPath = svnPath;
+        this.name = name;
+      }
+      this.git = new Git({
+        folder: this.svnRepository,
+        name: this.name,
+      });
+    }
 
-  export() {
-    return {
-      svnRepository: this.svnRepository,
-      svnPath: this.svnPath,
-      name: this.name,
-    };
-  }
+    _import(exported) {
+      logger.debug(`Importing project`);
+      logger.debug(exported);
+      this.svnRepository = exported.svnRepository;
+      this.svnPath = exported.svnPath;
+      this.name = exported.name;
+    }
 
-  async init() {
-    await this.git.init();
-  }
+    export() {
+      logger.debug(`Exporting project`);
+      const exported = {
+        svnRepository: this.svnRepository,
+        svnPath: this.svnPath,
+        name: this.name,
+      };
+      logger.debug(exported);
+      return exported;
+    }
+
+    async _init() {
+      await this.git.init();
+    }
+  };
 }

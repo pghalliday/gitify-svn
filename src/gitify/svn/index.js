@@ -25,7 +25,7 @@ export {
   NODE_KIND,
 } from './shared';
 
-export class Svn {
+export default class Svn {
   constructor({
     repository,
     username,
@@ -139,5 +139,9 @@ export class Svn {
           '--properties-only',
         ])
     );
+  }
+
+  async revision({revision}) {
+    throw new Error('Svn: revision: not yet implemented');
   }
 }
