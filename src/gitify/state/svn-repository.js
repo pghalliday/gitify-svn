@@ -79,7 +79,7 @@ export default function svnRepositoryFactory({
     async _init() {
       this.last = 0;
       const info = await this.svn.info({
-        path: '/',
+        path: '',
         revision: 0,
       });
       // check that the supplied url is the root of the repository

@@ -1,14 +1,33 @@
+import inquirer from 'inquirer';
+
 class Prompt {
-  async input() {
-    throw new Error('Prompt: input: not yet implemented');
+  async input(question, def) {
+    const answers = await inquirer.prompt({
+      type: 'input',
+      name: 'response',
+      message: question,
+      default: def,
+    });
+    return answers.response;
   }
 
-  async confirm() {
-    throw new Error('Prompt: confirm: not yet implemented');
+  async confirm(question, def) {
+    const answers = await inquirer.prompt({
+      type: 'confirm',
+      name: 'response',
+      message: question,
+      default: def,
+    });
+    return answers.response;
   }
 
-  async password() {
-    throw new Error('Prompt: password: not yet implemented');
+  async password(question) {
+    const answers = await inquirer.prompt({
+      type: 'password',
+      name: 'response',
+      message: question,
+    });
+    return answers.response;
   }
 };
 

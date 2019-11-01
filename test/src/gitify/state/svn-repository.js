@@ -91,7 +91,7 @@ describe('src', () => {
               });
               svn.info.should.have.been.calledWith({
                 revision: 0,
-                path: '/',
+                path: '',
               });
               checkCreated(FakeProject, {
                 svnRepository: uuid,
