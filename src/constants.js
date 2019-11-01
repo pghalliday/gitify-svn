@@ -22,6 +22,10 @@ export const PROMPT_REPOSITORY_URL = 'Enter the root URL of an SVN repository to
 export const PROMPT_REPOSITORY_NAME = 'Enter a name for the SVN repository';
 // eslint-disable-next-line max-len
 export const promptConfirmRoot = (url) => `Do you wish to switch to the repository root: ${url}`;
+// eslint-disable-next-line max-len
+export const PROMPT_SVN_USERNAME = 'Enter the SVN username for access to all repositories';
+// eslint-disable-next-line max-len
+export const promptSvnPassword = (username) => `Enter the password for SVN user (${username})`;
 
 
 export const PROGRESS_FILE = 'gitify-svn-progress.json';

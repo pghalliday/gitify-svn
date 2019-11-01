@@ -12,11 +12,11 @@ import {
 import {
   getLogger,
 } from '../../logger';
+import prompt from '../prompt';
 
 const logger = getLogger(__filename);
 
 export default function stateFactory({
-  prompt,
   SvnRepository,
 }) {
   return class State {

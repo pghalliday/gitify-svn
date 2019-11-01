@@ -23,7 +23,7 @@ const logger = getLogger(__filename);
 export {
   ACTION,
   NODE_KIND,
-} from './shared';
+} from './lib/shared';
 
 export default class Svn {
   constructor({

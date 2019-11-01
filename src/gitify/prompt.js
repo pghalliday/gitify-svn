@@ -6,6 +6,10 @@ class Prompt {
   async confirm() {
     throw new Error('Prompt: confirm: not yet implemented');
   }
+
+  async password() {
+    throw new Error('Prompt: password: not yet implemented');
+  }
 };
 
 const prompt = new Prompt();

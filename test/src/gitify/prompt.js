@@ -18,6 +18,14 @@ describe('src', () => {
           );
         });
       });
+
+      describe('password', () => {
+        it('should be rejected as not implemented', async () => {
+          await prompt.password().should.be.rejectedWith(
+              'Prompt: password: not yet implemented'
+          );
+        });
+      });
     });
   });
 });

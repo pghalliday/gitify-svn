@@ -11,7 +11,7 @@ import {
   schemaValue,
   schemaList,
   schemaTest,
-} from './shared';
+} from './lib/shared';
 import {
   getLogger,
 } from '../../logger';

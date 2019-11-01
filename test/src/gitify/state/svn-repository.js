@@ -70,7 +70,6 @@ describe('src', () => {
           });
           FakeProject = createConstructor(project);
           SvnRepository = svnRepositoryFactory({
-            prompt,
             Svn: FakeSvn,
             Project: FakeProject,
           });

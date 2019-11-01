@@ -79,7 +79,6 @@ describe('src', () => {
           svnRepository3,
         ]);
         State = stateFactory({
-          prompt,
           SvnRepository: FakeSvnRepository,
         });
       });

@@ -12,11 +12,11 @@ import {
 import {
   getLogger,
 } from '../../logger';
+import prompt from '../prompt';
 
 const logger = getLogger(__filename);
 
 export default function svnRepositoryFactory({
-  prompt,
   Project,
   Svn,
 }) {
