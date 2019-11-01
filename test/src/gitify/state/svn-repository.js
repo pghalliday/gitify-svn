@@ -126,7 +126,10 @@ describe('src', () => {
                 checkConstructed(FakeSvn, {
                   url,
                 });
-                confirm.should.have.been.calledWith(promptConfirmRoot(url));
+                confirm.should.have.been.calledWith(
+                    promptConfirmRoot(url),
+                    true,
+                );
                 checkCreated(FakeProject, {
                   svnRepository: uuid,
                   svnPath: '/',

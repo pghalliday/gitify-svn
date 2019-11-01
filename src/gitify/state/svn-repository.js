@@ -86,7 +86,8 @@ export default function svnRepositoryFactory({
       if (info.repositoryRoot !== this.url) {
         logger.info('It is only possible to convert the repository root');
         const confirm = await prompt.confirm(
-            promptConfirmRoot(info.repositoryRoot)
+            promptConfirmRoot(info.repositoryRoot),
+            true,
         );
         if (confirm) {
           this.url = info.repositoryRoot;
