@@ -1,6 +1,6 @@
 import stateFactory from '../../../../src/gitify/state';
 import svnRepositoryFactory from '../../../../src/gitify/state/svn-repository';
-import promptFactory from '../../../../src/gitify/prompt';
+import prompt from '../../../../src/gitify/prompt';
 import {
   PROMPT_REPOSITORY_URL,
   PROMPT_REPOSITORY_NAME,
@@ -14,15 +14,17 @@ import {
   stubResolves,
 } from '../../../helpers/utils';
 
-const Prompt = promptFactory({});
 const SvnRepository = svnRepositoryFactory({});
 
 const url = 'url';
 const name = 'name';
+const uuid = 'uuid';
 const url2 = 'url2';
 const name2 = 'name2';
+const uuid2 = 'uuid2';
 const url3 = 'url3';
 const name3 = 'name3';
+const uuid3 = 'uuid3';
 const revision = {
   date: new Date('2019-01-01'),
 };
@@ -35,7 +37,7 @@ const revision3 = {
 const exportedSvnRepository = 'exportedSvnRepository';
 const exported = {
   svnRepositories: {
-    [name]: exportedSvnRepository,
+    [uuid]: exportedSvnRepository,
   },
 };
 
@@ -46,8 +48,6 @@ describe('src', () => {
       let getNext;
       let getNext2;
       let getNext3;
-      let prompt;
-      let FakePrompt;
       let svnRepository;
       let svnRepository2;
       let svnRepository3;
@@ -56,33 +56,36 @@ describe('src', () => {
       let state;
 
       beforeEach(() => {
-        input = sinon.stub();
+        input = sinon.stub(prompt, 'input');
         getNext = sinon.stub();
         getNext2 = sinon.stub();
         getNext3 = sinon.stub();
-        prompt = createInstance(Prompt, {
-          input,
-        });
-        FakePrompt = createConstructor(prompt);
         svnRepository = createInstance(SvnRepository, {
           export: sinon.stub().returns(exportedSvnRepository),
           getNext,
         });
+        svnRepository.uuid = uuid;
         svnRepository2 = createInstance(SvnRepository, {
           getNext: getNext2,
         });
+        svnRepository2.uuid = uuid2;
         svnRepository3 = createInstance(SvnRepository, {
           getNext: getNext3,
         });
+        svnRepository3.uuid = uuid3;
         FakeSvnRepository = createConstructor([
           svnRepository,
           svnRepository2,
           svnRepository3,
         ]);
         State = stateFactory({
-          Prompt: FakePrompt,
+          prompt,
           SvnRepository: FakeSvnRepository,
         });
+      });
+
+      afterEach(() => {
+        input.restore();
       });
 
       describe('with an instance created without an export', () => {
@@ -93,7 +96,6 @@ describe('src', () => {
 
         it('should initialise a new state', () => {
           state.svnRepositories.should.eql({});
-          checkConstructed(FakePrompt);
         });
 
         describe('then getNext', () => {
@@ -118,7 +120,7 @@ describe('src', () => {
               url,
             });
             state.svnRepositories.should.eql({
-              [name]: svnRepository,
+              [uuid]: svnRepository,
             });
           });
 
@@ -141,7 +143,7 @@ describe('src', () => {
               url,
             });
             state.svnRepositories.should.eql({
-              [name]: svnRepository,
+              [uuid]: svnRepository,
             });
           });
 
@@ -156,7 +158,7 @@ describe('src', () => {
             it('should not prompt and add a repository', () => {
               input.should.not.have.been.called;
               state.svnRepositories.should.eql({
-                [name]: svnRepository,
+                [uuid]: svnRepository,
               });
             });
 
@@ -179,8 +181,8 @@ describe('src', () => {
                 url: url2,
               });
               state.svnRepositories.should.eql({
-                [name]: svnRepository,
-                [name2]: svnRepository2,
+                [uuid]: svnRepository,
+                [uuid2]: svnRepository2,
               });
             });
 
@@ -196,8 +198,8 @@ describe('src', () => {
               it('should not prompt and add a repository', () => {
                 input.should.not.have.been.called;
                 state.svnRepositories.should.eql({
-                  [name]: svnRepository,
-                  [name2]: svnRepository2,
+                  [uuid]: svnRepository,
+                  [uuid2]: svnRepository2,
                 });
               });
 
@@ -220,8 +222,8 @@ describe('src', () => {
               it('should not prompt and add a repository', () => {
                 input.should.not.have.been.called;
                 state.svnRepositories.should.eql({
-                  [name]: svnRepository,
-                  [name2]: svnRepository2,
+                  [uuid]: svnRepository,
+                  [uuid2]: svnRepository2,
                 });
               });
 
@@ -256,9 +258,9 @@ describe('src', () => {
                   url: url3,
                 });
                 state.svnRepositories.should.eql({
-                  [name]: svnRepository,
-                  [name2]: svnRepository2,
-                  [name3]: svnRepository3,
+                  [uuid]: svnRepository,
+                  [uuid2]: svnRepository2,
+                  [uuid3]: svnRepository3,
                 });
               });
 
@@ -282,9 +284,9 @@ describe('src', () => {
                 it('should not prompt and add a repository', () => {
                   input.should.not.have.been.called;
                   state.svnRepositories.should.eql({
-                    [name]: svnRepository,
-                    [name2]: svnRepository2,
-                    [name3]: svnRepository3,
+                    [uuid]: svnRepository,
+                    [uuid2]: svnRepository2,
+                    [uuid3]: svnRepository3,
                   });
                 });
 
@@ -310,7 +312,7 @@ describe('src', () => {
             exported: exportedSvnRepository,
           });
           state.svnRepositories.should.eql({
-            [name]: svnRepository,
+            [uuid]: svnRepository,
           });
         });
 

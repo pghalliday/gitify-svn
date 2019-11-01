@@ -16,7 +16,7 @@ import {
 const logger = getLogger(__filename);
 
 export default function stateFactory({
-  Prompt,
+  prompt,
   SvnRepository,
 }) {
   return class State {
@@ -28,7 +28,7 @@ export default function stateFactory({
       } else {
         this._init();
       }
-      this.prompt = new Prompt();
+      this.prompt = prompt;
     }
 
     _init() {
@@ -65,7 +65,7 @@ export default function stateFactory({
         name,
         url,
       });
-      this.svnRepositories[name] = svnRepository;
+      this.svnRepositories[svnRepository.uuid] = svnRepository;
       return svnRepository;
     }
 

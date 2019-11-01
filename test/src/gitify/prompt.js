@@ -1,20 +1,20 @@
-import promptFactory from '../../../src/gitify/prompt';
+import prompt from '../../../src/gitify/prompt';
 
 describe('src', () => {
   describe('gitify', () => {
     describe('prompt', () => {
-      let Prompt;
-      let prompt;
-
-      beforeEach(() => {
-        Prompt = promptFactory({});
-        prompt = new Prompt();
-      });
-
       describe('input', () => {
-        it('should be rejected as no implemented', async () => {
+        it('should be rejected as not implemented', async () => {
           await prompt.input().should.be.rejectedWith(
               'Prompt: input: not yet implemented'
+          );
+        });
+      });
+
+      describe('confirm', () => {
+        it('should be rejected as not implemented', async () => {
+          await prompt.confirm().should.be.rejectedWith(
+              'Prompt: confirm: not yet implemented'
           );
         });
       });

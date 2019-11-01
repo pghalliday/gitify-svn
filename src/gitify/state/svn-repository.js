@@ -3,6 +3,7 @@ import {
 } from 'lodash';
 import {
   ROOT_PROJECT_NAME,
+  promptConfirmRoot,
 } from '../../constants';
 import {
   exportObject,
@@ -15,6 +16,7 @@ import {
 const logger = getLogger(__filename);
 
 export default function svnRepositoryFactory({
+  prompt,
   Project,
   Svn,
 }) {
@@ -54,6 +56,7 @@ export default function svnRepositoryFactory({
       this.url = exported.url;
       this.name = exported.name;
       this.last = exported.last;
+      this.uuid = exported.uuid;
       this.projects = mapValues(
           exported.projects,
           importObject(Project)
@@ -66,6 +69,7 @@ export default function svnRepositoryFactory({
         url: this.url,
         name: this.name,
         last: this.last,
+        uuid: this.uuid,
         projects: mapValues(this.projects, exportObject),
       };
       logger.debug(exported);
@@ -74,10 +78,29 @@ export default function svnRepositoryFactory({
 
     async _init() {
       this.last = 0;
-      // Create the root git project for the main tree
+      const info = await this.svn.info({
+        path: '/',
+        revision: 0,
+      });
+      // check that the supplied url is the root of the repository
+      if (info.repositoryRoot !== this.url) {
+        logger.info('It is only possible to convert the repository root');
+        const confirm = await prompt.confirm(
+            promptConfirmRoot(info.repositoryRoot)
+        );
+        if (confirm) {
+          this.url = info.repositoryRoot;
+          this.svn = new Svn({
+            url: this.url,
+          });
+        } else {
+          throw new Error('Can only convert the root of an SVN repository');
+        }
+      }
+      this.uuid = info.repositoryUuid;
       this.projects = {
         [ROOT_PROJECT_NAME]: await Project.create({
-          svnRepository: this.name,
+          svnRepository: this.uuid,
           svnPath: '/',
           name: ROOT_PROJECT_NAME,
         }),
