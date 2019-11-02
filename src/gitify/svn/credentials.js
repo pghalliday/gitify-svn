@@ -4,16 +4,26 @@ import {
   promptSvnPassword,
 } from '../../constants';
 
-class Credentials {
+export class Credentials {
+  init({
+    username,
+    password,
+  }) {
+    this.username = username;
+    this.password = password;
+  }
+
   async get() {
-    if (!this.creds) {
-      const username = await prompt.input(PROMPT_SVN_USERNAME);
-      this.creds = {
-        username,
-        password: await prompt.password(promptSvnPassword(username)),
-      };
+    if (!this.username) {
+      this.username = await prompt.input(PROMPT_SVN_USERNAME);
     }
-    return this.creds;
+    if (!this.password) {
+      this.password = await prompt.password(promptSvnPassword(this.username));
+    }
+    return {
+      username: this.username,
+      password: this.password,
+    };
   }
 }
 

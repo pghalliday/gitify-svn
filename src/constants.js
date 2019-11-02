@@ -5,6 +5,7 @@ import {
 export const APPLICATION_NAME = packageName;
 export const APPLICATION_VERSION = packageVersion;
 export const DEFAULT_WORKING_DIR = 'gitify-svn-working';
+export const REPOSITORIES_DIR = 'repositories';
 export const DEFAULT_SVN_BINARY = 'svn';
 export const DEFAULT_LOG_LEVEL = 'info';
 export const STATE_FILE = 'state.json';
@@ -26,6 +27,8 @@ export const promptConfirmRoot = (url) => `Do you wish to switch to the reposito
 export const PROMPT_SVN_USERNAME = 'Enter the SVN username for access to all repositories';
 // eslint-disable-next-line max-len
 export const promptSvnPassword = (username) => `Enter the password for SVN user (${username})`;
+// eslint-disable-next-line max-len
+export const PROMPT_WORKING_DIRECTORY = 'Enter the path to the working directory';
 
 
 export const PROGRESS_FILE = 'gitify-svn-progress.json';

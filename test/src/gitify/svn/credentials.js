@@ -1,4 +1,6 @@
-import credentials from '../../../../src/gitify/svn/credentials';
+import {
+  Credentials,
+} from '../../../../src/gitify/svn/credentials';
 import prompt from '../../../../src/gitify/prompt';
 import {
   stubResolves,
@@ -15,23 +17,51 @@ describe('src', () => {
   describe('gitify', () => {
     describe('svn', () => {
       describe('credentials', () => {
-        describe('get', () => {
-          describe('when the credentials have not yet been supplied', () => {
-            let input;
-            let password;
-            let creds;
+        let credentials;
 
+        beforeEach(() => {
+          credentials = new Credentials();
+        });
+
+        describe('get', () => {
+          let input;
+          let password;
+          let creds;
+
+          beforeEach(async () => {
+            input = sinon.stub(prompt, 'input');
+            password = sinon.stub(prompt, 'password');
+          });
+
+          afterEach(() => {
+            input.restore();
+            password.restore();
+          });
+
+          describe('when the credentials have been supplied with init', () => {
             beforeEach(async () => {
-              input = sinon.stub(prompt, 'input');
-              password = sinon.stub(prompt, 'password');
-              stubResolves(input, user);
-              stubResolves(password, pass);
+              stubResolves(input, []);
+              stubResolves(password, []);
+              credentials.init({
+                username: user,
+                password: pass,
+              });
               creds = await credentials.get();
             });
 
-            afterEach(() => {
-              input.restore();
-              password.restore();
+            it('should return the same credentials without prompting', () => {
+              creds.should.eql({
+                username: user,
+                password: pass,
+              });
+            });
+          });
+
+          describe('when the credentials have not yet been supplied', () => {
+            beforeEach(async () => {
+              stubResolves(input, user);
+              stubResolves(password, pass);
+              creds = await credentials.get();
             });
 
             it('should prompt for the username and password', () => {
@@ -40,19 +70,6 @@ describe('src', () => {
               creds.should.eql({
                 username: user,
                 password: pass,
-              });
-            });
-
-            describe('and then get again', () => {
-              beforeEach(async () => {
-                creds = await credentials.get();
-              });
-
-              it('should return the same credentials without prompting', () => {
-                creds.should.eql({
-                  username: user,
-                  password: pass,
-                });
               });
             });
           });
