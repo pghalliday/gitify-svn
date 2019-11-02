@@ -14,6 +14,7 @@ import {
 } from '../../logger';
 import prompt from '../prompt';
 import stateFile from './state-file';
+import repositoriesDirectory from './repositories-directory';
 
 const logger = getLogger(__filename);
 
@@ -22,6 +23,7 @@ export default function stateFactory({
 }) {
   return class State {
     async init() {
+      await repositoriesDirectory.init();
       const exported = await stateFile.read();
       if (exported) {
         this._import(exported);

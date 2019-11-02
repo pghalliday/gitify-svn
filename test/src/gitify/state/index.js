@@ -2,6 +2,8 @@ import stateFactory from '../../../../src/gitify/state';
 import svnRepositoryFactory from '../../../../src/gitify/state/svn-repository';
 import prompt from '../../../../src/gitify/prompt';
 import stateFile from '../../../../src/gitify/state/state-file';
+// eslint-disable-next-line max-len
+import repositoriesDirectory from '../../../../src/gitify/state/repositories-directory';
 import {
   PROMPT_REPOSITORY_URL,
   PROMPT_REPOSITORY_NAME,
@@ -51,6 +53,7 @@ describe('src', () => {
       let read;
       let write;
       let input;
+      let init;
       let getNext;
       let getNext2;
       let getNext3;
@@ -66,6 +69,7 @@ describe('src', () => {
         read = sinon.stub(stateFile, 'read');
         write = sinon.stub(stateFile, 'write');
         input = sinon.stub(prompt, 'input');
+        init = sinon.stub(repositoriesDirectory, 'init');
         getNext = sinon.stub();
         getNext2 = sinon.stub();
         getNext3 = sinon.stub();
@@ -97,12 +101,17 @@ describe('src', () => {
         read.restore();
         write.restore();
         input.restore();
+        init.restore();
       });
 
       describe('init with no state file', () => {
         beforeEach(async () => {
           stubResolves(read, undefined);
           await state.init();
+        });
+
+        it('should initialise the repositories directory', () => {
+          init.should.have.been.called;
         });
 
         it('should initialise a new state', () => {
