@@ -9,21 +9,17 @@ import {
 } from '../constants';
 
 export class WorkingDirectory {
-  init({
-    workingDirectory,
+  async init({
+    path,
   }) {
-    this.workingDirectory = workingDirectory;
-  }
-
-  async get() {
-    if (!this.workingDirectory) {
-      this.workingDirectory = await prompt.input(
+    this.path = path;
+    if (!this.path) {
+      this.path = await prompt.input(
           PROMPT_WORKING_DIRECTORY,
           DEFAULT_WORKING_DIR,
       );
     }
-    await promisify(mkdirp)(this.workingDirectory);
-    return this.workingDirectory;
+    await promisify(mkdirp)(this.path);
   }
 }
 

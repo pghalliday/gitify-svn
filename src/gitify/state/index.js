@@ -13,6 +13,7 @@ import {
   getLogger,
 } from '../../logger';
 import prompt from '../prompt';
+import stateFile from './state-file';
 
 const logger = getLogger(__filename);
 
@@ -20,20 +21,14 @@ export default function stateFactory({
   SvnRepository,
 }) {
   return class State {
-    constructor({
-      exported,
-    }) {
+    async init() {
+      const exported = await stateFile.read();
       if (exported) {
         this._import(exported);
       } else {
-        this._init();
+        logger.debug('Creating State');
+        this.svnRepositories = {};
       }
-      this.prompt = prompt;
-    }
-
-    _init() {
-      logger.debug('Creating State');
-      this.svnRepositories = {};
     }
 
     _import(exported) {
@@ -45,7 +40,7 @@ export default function stateFactory({
       );
     }
 
-    export() {
+    _export() {
       logger.debug('Exporting State');
       const exported = {
         svnRepositories: {
@@ -70,8 +65,8 @@ export default function stateFactory({
     }
 
     async _promptForNext() {
-      const url = await this.prompt.input(PROMPT_REPOSITORY_URL);
-      const name = await this.prompt.input(PROMPT_REPOSITORY_NAME);
+      const url = await prompt.input(PROMPT_REPOSITORY_URL);
+      const name = await prompt.input(PROMPT_REPOSITORY_NAME);
       const svnRepository = await this.addSvnRepository({
         name,
         url,
@@ -83,21 +78,26 @@ export default function stateFactory({
       const keys = Object.keys(this.svnRepositories);
       if (keys.length === 0) {
         logger.info('No SVN repositories have been added yet');
-        return this._promptForNext();
+        this._next = await this._promptForNext();
       } else {
-        let next;
         for (let i = 0; i < keys.length; i++) {
           const svnRepository = this.svnRepositories[keys[i]];
           const revision = await svnRepository.getNext();
-          next = compareDates(next, revision);
+          this._next = compareDates(this._next, revision);
         }
-        while (!next) {
-          // eslint-disable-next-line max-len
-          logger.info('No SVN repositories have a next revision, add another to continue');
-          next = await this._promptForNext();
-        }
-        return next;
       }
+      while (!this._next) {
+        // eslint-disable-next-line max-len
+        logger.info('No SVN repositories have a next revision, add another to continue');
+        this._next = await this._promptForNext();
+      }
+      return this._next;
+    }
+
+    async resolve() {
+      this.svnRepositories[this._next.uuid].resolve();
+      delete this._next;
+      await stateFile.write(this._export());
     }
   };
 }

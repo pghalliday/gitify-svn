@@ -25,12 +25,11 @@ describe('src', () => {
         workingDirectory = new WorkingDirectory();
       });
 
-      describe('get', () => {
+      describe('init', () => {
         let fsMock;
         let input;
-        let w;
 
-        beforeEach(async () => {
+        beforeEach(() => {
           input = sinon.stub(prompt, 'input');
           fsMock = new FsMock({});
         });
@@ -40,19 +39,16 @@ describe('src', () => {
           fsMock.restore();
         });
 
-        // eslint-disable-next-line max-len
-        describe('when the working directory has been supplied with init', () => {
+        describe('with a path', () => {
           beforeEach(async () => {
             stubResolves(input, []);
-            workingDirectory.init({
-              workingDirectory: workingDir,
+            await workingDirectory.init({
+              path: workingDir,
             });
-            w = await workingDirectory.get();
           });
 
-          // eslint-disable-next-line max-len
-          it('should return the same working directory without prompting', () => {
-            w.should.eql(workingDir);
+          it('should set the path', () => {
+            workingDirectory.path.should.eql(workingDir);
           });
 
           it('should create the working directory', () => {
@@ -60,11 +56,10 @@ describe('src', () => {
           });
         });
 
-        // eslint-disable-next-line max-len
-        describe('when the working directory has not yet been supplied', () => {
+        describe('without a path', () => {
           beforeEach(async () => {
             stubResolves(input, workingDir);
-            w = await workingDirectory.get();
+            await workingDirectory.init({});
           });
 
           it('should prompt for the working directory', () => {
@@ -72,7 +67,14 @@ describe('src', () => {
                 PROMPT_WORKING_DIRECTORY,
                 DEFAULT_WORKING_DIR,
             );
-            w.should.eql(workingDir);
+          });
+
+          it('should set the path', () => {
+            workingDirectory.path.should.eql(workingDir);
+          });
+
+          it('should create the working directory', () => {
+            fsMock.getEntry(workingDir).type.should.eql(FS_DIRECTORY);
           });
         });
       });

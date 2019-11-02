@@ -1,6 +1,7 @@
 import stateFactory from '../../../../src/gitify/state';
 import svnRepositoryFactory from '../../../../src/gitify/state/svn-repository';
 import prompt from '../../../../src/gitify/prompt';
+import stateFile from '../../../../src/gitify/state/state-file';
 import {
   PROMPT_REPOSITORY_URL,
   PROMPT_REPOSITORY_NAME,
@@ -27,12 +28,15 @@ const name3 = 'name3';
 const uuid3 = 'uuid3';
 const revision = {
   date: new Date('2019-01-01'),
+  uuid,
 };
 const revision2 = {
   date: new Date('2018-01-01'),
+  uuid: uuid2,
 };
 const revision3 = {
   date: new Date('2018-07-01'),
+  uuid: uuid3,
 };
 const exportedSvnRepository = 'exportedSvnRepository';
 const exported = {
@@ -44,6 +48,8 @@ const exported = {
 describe('src', () => {
   describe('gitify', () => {
     describe('State', () => {
+      let read;
+      let write;
       let input;
       let getNext;
       let getNext2;
@@ -54,8 +60,11 @@ describe('src', () => {
       let FakeSvnRepository;
       let State;
       let state;
+      let next;
 
       beforeEach(() => {
+        read = sinon.stub(stateFile, 'read');
+        write = sinon.stub(stateFile, 'write');
         input = sinon.stub(prompt, 'input');
         getNext = sinon.stub();
         getNext2 = sinon.stub();
@@ -81,16 +90,19 @@ describe('src', () => {
         State = stateFactory({
           SvnRepository: FakeSvnRepository,
         });
+        state = new State();
       });
 
       afterEach(() => {
+        read.restore();
+        write.restore();
         input.restore();
       });
 
-      describe('with an instance created without an export', () => {
-        beforeEach(() => {
-          state = new State({
-          });
+      describe('init with no state file', () => {
+        beforeEach(async () => {
+          stubResolves(read, undefined);
+          await state.init();
         });
 
         it('should initialise a new state', () => {
@@ -98,8 +110,6 @@ describe('src', () => {
         });
 
         describe('then getNext', () => {
-          let next;
-
           beforeEach(async () => {
             stubReturns(input, [url, name]);
             stubResolves(getNext, revision);
@@ -128,7 +138,7 @@ describe('src', () => {
           });
         });
 
-        describe('addSvnRepository', () => {
+        describe('then addSvnRepository', () => {
           beforeEach(async () => {
             await state.addSvnRepository({
               name,
@@ -299,11 +309,10 @@ describe('src', () => {
         });
       });
 
-      describe('with an instance created from an export', () => {
-        beforeEach(() => {
-          state = new State({
-            exported,
-          });
+      describe('init with a state file', () => {
+        beforeEach(async () => {
+          stubResolves(read, exported);
+          await state.init();
         });
 
         it('should populate the instance', () => {
@@ -315,9 +324,28 @@ describe('src', () => {
           });
         });
 
-        describe('export', () => {
-          it('should export an object that can be serialized', () => {
-            state.export().should.eql(exported);
+        describe('then getNext', () => {
+          beforeEach(async () => {
+            stubResolves(getNext, revision);
+            next = await state.getNext();
+          });
+
+          it('should get the next revision', () => {
+            next.should.eql(revision);
+          });
+
+          describe('then resolve', () => {
+            beforeEach(async () => {
+              await state.resolve();
+            });
+
+            it('should resolve the repository revision', () => {
+              svnRepository.resolve.should.have.been.called;
+            });
+
+            it('should write the state file', () => {
+              stateFile.write.should.have.been.calledWith(exported);
+            });
           });
         });
       });

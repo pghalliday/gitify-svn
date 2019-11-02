@@ -19,28 +19,21 @@ import {
 const logger = getLogger(__filename);
 
 export class StateFile {
-  async _file() {
-    const workingDir = await workingDirectory.get();
-    return join(workingDir, STATE_FILE);
-  }
-
   async read() {
-    const file = await this._file();
-    logger.debug(`Reading state file: ${file}`);
+    this.path = join(workingDirectory.path, STATE_FILE);
+    logger.debug(`Reading state file: ${this.path}`);
     try {
-      const json = await promisify(readFile)(file, 'utf8');
+      const json = await promisify(readFile)(this.path, 'utf8');
       return JSON.parse(json);
     } catch (err) {
-      console.log(err);
       logger.debug(`Error reading state file: ${err}`);
     }
   }
 
   async write(exported) {
     logger.debug('Writing state to state file');
-    const file = await this._file();
     await promisify(writeFile)(
-        file,
+        this.path,
         JSON.stringify(exported, null, 2),
     );
   }

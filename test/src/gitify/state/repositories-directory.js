@@ -10,9 +10,6 @@ import {
   FS_DIRECTORY,
 } from '../../../mocks/fs';
 import {
-  stubResolves,
-} from '../../../helpers/utils';
-import {
   REPOSITORIES_DIR,
 } from '../../../../src/constants';
 
@@ -27,25 +24,23 @@ describe('src', () => {
         repositoriesDirectory = new RepositoriesDirectory();
       });
 
-      describe('get', () => {
+      describe('init', () => {
         let fsMock;
-        let get;
-        let r;
 
         beforeEach(async () => {
-          get = sinon.stub(workingDirectory, 'get');
-          stubResolves(get, workingDir);
+          workingDirectory.path = workingDir;
           fsMock = new FsMock({});
-          r = await repositoriesDirectory.get();
+          await repositoriesDirectory.init();
         });
 
         afterEach(() => {
           fsMock.restore();
-          get.restore();
         });
 
-        it('should return the repositories directory', () => {
-          r.should.eql(join(workingDir, REPOSITORIES_DIR));
+        it('should set the path', () => {
+          repositoriesDirectory.path.should.eql(
+              join(workingDir, REPOSITORIES_DIR)
+          );
         });
 
         it('should create the repositories directory', () => {

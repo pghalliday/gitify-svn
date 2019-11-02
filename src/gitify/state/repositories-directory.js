@@ -11,11 +11,9 @@ import {
 } from '../../constants';
 
 export class RepositoriesDirectory {
-  async get() {
-    const workingDir = await workingDirectory.get();
-    const dir = join(workingDir, REPOSITORIES_DIR);
-    await promisify(mkdirp)(dir);
-    return dir;
+  async init() {
+    this.path = join(workingDirectory.path, REPOSITORIES_DIR);
+    await promisify(mkdirp)(this.path);
   }
 }
 

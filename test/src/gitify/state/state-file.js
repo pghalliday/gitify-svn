@@ -24,11 +24,10 @@ describe('src', () => {
       describe('stateFile', () => {
         let stateFile;
         let fsMock;
-        let get;
         let s;
 
         beforeEach(() => {
-          get = sinon.stub(workingDirectory, 'get').resolves(workingDir);
+          workingDirectory.path = workingDir;
           fsMock = new FsMock({
             [workingDir]: {
               type: FS_DIRECTORY,
@@ -39,7 +38,6 @@ describe('src', () => {
 
         afterEach(() => {
           fsMock.restore();
-          get.restore();
         });
 
         describe('read', () => {
@@ -50,25 +48,25 @@ describe('src', () => {
           it('should read the state file', () => {
             expect(s).to.not.be.ok;
           });
-        });
 
-        describe('write', () => {
-          beforeEach(async () => {
-            await stateFile.write(exported);
-          });
-
-          it('should write to the state file', () => {
-            fsMock.getEntry(join(workingDir, STATE_FILE))
-                .data.should.eql(JSON.stringify(exported, null, 2));
-          });
-
-          describe('then read', () => {
+          describe('then write', () => {
             beforeEach(async () => {
-              s = await stateFile.read();
+              await stateFile.write(exported);
             });
 
-            it('should read the state file', () => {
-              s.should.eql(exported);
+            it('should write to the state file', () => {
+              fsMock.getEntry(join(workingDir, STATE_FILE))
+                  .data.should.eql(JSON.stringify(exported, null, 2));
+            });
+
+            describe('then read', () => {
+              beforeEach(async () => {
+                s = await stateFile.read();
+              });
+
+              it('should read the state file', () => {
+                s.should.eql(exported);
+              });
             });
           });
         });
