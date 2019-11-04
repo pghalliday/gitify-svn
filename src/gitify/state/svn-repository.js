@@ -13,12 +13,12 @@ import {
   getLogger,
 } from '../../logger';
 import prompt from '../prompt';
+import svn from '../svn';
 
 const logger = getLogger(__filename);
 
 export default function svnRepositoryFactory({
   Project,
-  Svn,
 }) {
   return class SvnRepository {
     static async create({
@@ -45,9 +45,6 @@ export default function svnRepositoryFactory({
         this.url = url;
         this.name = name;
       }
-      this.svn = new Svn({
-        url: this.url,
-      });
     }
 
     _import(exported) {
@@ -78,7 +75,8 @@ export default function svnRepositoryFactory({
 
     async _init() {
       this.last = 0;
-      const info = await this.svn.info({
+      const info = await svn.info({
+        repository: this.url,
         path: '',
         revision: 0,
       });
@@ -91,9 +89,6 @@ export default function svnRepositoryFactory({
         );
         if (confirm) {
           this.url = info.repositoryRoot;
-          this.svn = new Svn({
-            url: this.url,
-          });
         } else {
           throw new Error('Can only convert the root of an SVN repository');
         }
@@ -110,7 +105,8 @@ export default function svnRepositoryFactory({
 
     async getNext() {
       if (!this._next) {
-        this._next = await this.svn.revision({
+        this._next = await svn.revision({
+          repository: this.url,
           revision: this.last + 1,
         });
       }

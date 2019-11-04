@@ -1,7 +1,7 @@
 import svnRepositoryFactory from '../../../../src/gitify/state/svn-repository';
 import projectFactory from '../../../../src/gitify/state/project';
 import prompt from '../../../../src/gitify/prompt';
-import Svn from '../../../../src/gitify/svn';
+import svn from '../../../../src/gitify/svn';
 import {
   ROOT_PROJECT_NAME,
   promptConfirmRoot,
@@ -26,9 +26,11 @@ const info = {
 };
 const last = 0;
 const revision1 = {
+  repository: url,
   revision: 1,
 };
 const revision2 = {
+  repository: url,
   revision: 2,
 };
 const projectName = 'projectName';
@@ -48,35 +50,31 @@ describe('src', () => {
     describe('state', () => {
       describe('SvnRepository', () => {
         let confirm;
-        let svn;
-        let svn2;
-        let FakeSvn;
+        let revisionMethod;
+        let infoMethod;
         let project;
         let FakeProject;
         let SvnRepository;
 
         beforeEach(() => {
           confirm = sinon.stub(prompt, 'confirm');
-          svn = createInstance(Svn, {
-            revision: sinon.stub().callsFake(
-                (params) => Promise.resolve(params)
-            ),
-            info: sinon.stub().resolves(info),
-          });
-          svn2 = createInstance(Svn, {});
-          FakeSvn = createConstructor([svn, svn2]);
+          revisionMethod = sinon.stub(svn, 'revision').callsFake(
+              (params) => Promise.resolve(params)
+          );
+          infoMethod = sinon.stub(svn, 'info').resolves(info);
           project = createInstance(Project, {
             export: sinon.stub().returns(exportedProject),
           });
           FakeProject = createConstructor(project);
           SvnRepository = svnRepositoryFactory({
-            Svn: FakeSvn,
             Project: FakeProject,
           });
         });
 
         afterEach(() => {
           confirm.restore();
+          revisionMethod.restore();
+          infoMethod.restore();
         });
 
         describe('create', () => {
@@ -86,10 +84,8 @@ describe('src', () => {
                 url,
                 name,
               });
-              checkConstructed(FakeSvn, {
-                url,
-              });
-              svn.info.should.have.been.calledWith({
+              infoMethod.should.have.been.calledWith({
+                repository: url,
                 revision: 0,
                 path: '',
               });
@@ -119,12 +115,6 @@ describe('src', () => {
                 const svnRepository = await SvnRepository.create({
                   url: incorrectUrl,
                   name,
-                });
-                checkConstructed(FakeSvn, {
-                  url: incorrectUrl,
-                });
-                checkConstructed(FakeSvn, {
-                  url,
                 });
                 confirm.should.have.been.calledWith(
                     promptConfirmRoot(url),
@@ -172,12 +162,6 @@ describe('src', () => {
             });
           });
 
-          it('should create the Svn instance', () => {
-            checkConstructed(FakeSvn, {
-              url,
-            });
-          });
-
           it('should populate the instance', () => {
             svnRepository.url.should.eql(url);
             svnRepository.name.should.eql(name);
@@ -205,8 +189,8 @@ describe('src', () => {
             });
 
             it('should get the next revision', async () => {
-              svn.revision.should.have.been.calledOnce;
-              svn.revision.should.have.been.calledWith(revision1);
+              revisionMethod.should.have.been.calledOnce;
+              revisionMethod.should.have.been.calledWith(revision1);
               revision.should.eql(revision1);
             });
 
@@ -216,7 +200,7 @@ describe('src', () => {
               });
 
               it('should not need to hit SVN again', async () => {
-                svn.revision.should.have.been.calledOnce;
+                revisionMethod.should.have.been.calledOnce;
                 revision.should.eql(revision1);
               });
             });
@@ -236,8 +220,8 @@ describe('src', () => {
                 });
 
                 it('should get the next revision', async () => {
-                  svn.revision.should.have.been.calledTwice;
-                  svn.revision.should.have.been.calledWith(revision2);
+                  revisionMethod.should.have.been.calledTwice;
+                  revisionMethod.should.have.been.calledWith(revision2);
                   revision.should.eql(revision2);
                 });
               });

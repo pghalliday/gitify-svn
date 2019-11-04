@@ -14,6 +14,10 @@ import request from 'request';
 import {
   createWriteStream,
 } from 'fs';
+import credentials from './credentials';
+import {
+  DEFAULT_SVN_BINARY,
+} from '../../constants';
 import {
   getLogger,
 } from '../../logger';
@@ -25,23 +29,27 @@ export {
   NODE_KIND,
 } from './lib/shared';
 
-export default class Svn {
-  constructor({
-    repository,
-    username,
-    password,
-    svnBinary,
-  }) {
+export class Svn {
+  constructor(svnBinary = DEFAULT_SVN_BINARY) {
     this.svnBinary = svnBinary;
-    this.repository = repository,
-    this.args = ['--username', username, '--password', password];
+  }
+
+  async init() {
+    await credentials.init();
+    this.args = [
+      '--username',
+      credentials.username,
+      '--password',
+      credentials.password,
+    ];
     this.auth = {
-      user: username,
-      pass: password,
+      user: credentials.username,
+      pass: credentials.password,
     };
   }
 
   download({
+    repository,
     path,
     revision,
     destination,
@@ -55,7 +63,7 @@ export default class Svn {
       writeStream.on('close', () => {
         resolution();
       });
-      const url = `${this.repository}/!svn/bc/${revision}${path}`;
+      const url = `${repository}/!svn/bc/${revision}${path}`;
       logger.debug(`Downloading file from ${url} to ${destination}`);
       request.get(url, {
         auth: this.auth,
@@ -106,11 +114,11 @@ export default class Svn {
     });
   }
 
-  async log({revision}) {
+  async log({repository, revision}) {
     return parseLog(
         await this.exec([
           'log',
-          encodeURI(this.repository),
+          encodeURI(repository),
           '--xml',
           '-v',
           '-r',
@@ -119,21 +127,21 @@ export default class Svn {
     );
   }
 
-  async info({path, revision}) {
+  async info({repository, path, revision}) {
     return parseInfo(
         await this.exec([
           'info',
-          encodeURI(`${this.repository}${path}@${revision}`),
+          encodeURI(`${repository}${path}@${revision}`),
           '--xml',
         ])
     );
   }
 
-  async diffProps({revision}) {
+  async diffProps({repository, revision}) {
     return parseDiffProps(
         await this.exec([
           'diff',
-          encodeURI(this.repository),
+          encodeURI(repository),
           '-c',
           revision,
           '--properties-only',
@@ -141,7 +149,10 @@ export default class Svn {
     );
   }
 
-  async revision({revision}) {
+  async revision({repository, revision}) {
     throw new Error('Svn: revision: not yet implemented');
   }
 }
+
+const svn = new Svn();
+export default svn;

@@ -23,10 +23,9 @@ describe('src', () => {
           credentials = new Credentials();
         });
 
-        describe('get', () => {
+        describe('init', () => {
           let input;
           let password;
-          let creds;
 
           beforeEach(async () => {
             input = sinon.stub(prompt, 'input');
@@ -38,7 +37,7 @@ describe('src', () => {
             password.restore();
           });
 
-          describe('when the credentials have been supplied with init', () => {
+          describe('when the credentials have been supplied', () => {
             beforeEach(async () => {
               stubResolves(input, []);
               stubResolves(password, []);
@@ -46,28 +45,27 @@ describe('src', () => {
                 username: user,
                 password: pass,
               });
-              creds = await credentials.get();
             });
 
-            it('should return the same credentials without prompting', () => {
-              creds.should.eql({
+            it('should set the credentials without prompting', () => {
+              credentials.should.eql({
                 username: user,
                 password: pass,
               });
             });
           });
 
-          describe('when the credentials have not yet been supplied', () => {
+          describe('when the credentials have not been supplied', () => {
             beforeEach(async () => {
               stubResolves(input, user);
               stubResolves(password, pass);
-              creds = await credentials.get();
+              await credentials.init({});
             });
 
             it('should prompt for the username and password', () => {
               input.should.have.been.calledWith(PROMPT_SVN_USERNAME);
               password.should.have.been.calledWith(promptSvnPassword(user));
-              creds.should.eql({
+              credentials.should.eql({
                 username: user,
                 password: pass,
               });
