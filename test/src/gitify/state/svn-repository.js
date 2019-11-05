@@ -5,7 +5,6 @@ import Project from '../../../../src/gitify/state/project';
 import prompt from '../../../../src/gitify/prompt';
 import svn from '../../../../src/gitify/svn';
 import {
-  ROOT_PROJECT_NAME,
   promptConfirmRoot,
 } from '../../../../src/constants';
 import {
@@ -32,15 +31,12 @@ const revision2 = {
   repository: url,
   revision: 2,
 };
-const projectName = 'projectName';
 const exportedProject = 'exportedProject';
 const exported = {
   url,
   uuid,
   last,
-  projects: {
-    [projectName]: exportedProject,
-  },
+  project: exportedProject,
 };
 
 describe('src', () => {
@@ -87,16 +83,13 @@ describe('src', () => {
                 path: '',
               });
               checkCreated(FakeProject, {
-                svnRepository: uuid,
-                svnPath: '/',
-                name: ROOT_PROJECT_NAME,
+                uuid: uuid,
+                url: url,
               });
               svnRepository.url.should.eql(url);
               svnRepository.uuid.should.eql(uuid);
               svnRepository.last.should.eql(0);
-              svnRepository.projects.should.eql({
-                [ROOT_PROJECT_NAME]: project,
-              });
+              svnRepository.project.should.eql(project);
             });
           });
 
@@ -116,16 +109,13 @@ describe('src', () => {
                     true,
                 );
                 checkCreated(FakeProject, {
-                  svnRepository: uuid,
-                  svnPath: '/',
-                  name: ROOT_PROJECT_NAME,
+                  uuid: uuid,
+                  url: url,
                 });
                 svnRepository.url.should.eql(url);
                 svnRepository.uuid.should.eql(uuid);
                 svnRepository.last.should.eql(0);
-                svnRepository.projects.should.eql({
-                  [ROOT_PROJECT_NAME]: project,
-                });
+                svnRepository.project.should.eql(project);
               });
             });
 
@@ -162,9 +152,7 @@ describe('src', () => {
             checkConstructed(FakeProject, {
               exported: exportedProject,
             });
-            svnRepository.projects.should.eql({
-              [projectName]: project,
-            });
+            svnRepository.project.should.eql(project);
           });
 
           describe('export', () => {

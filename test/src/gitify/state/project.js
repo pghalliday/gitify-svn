@@ -3,13 +3,14 @@ import {
 } from '../../../../src/gitify/state/project';
 import git from '../../../../src/gitify/git';
 
-const svnRepository = 'svnRepository';
-const svnPath = 'svnPath';
-const name = 'name';
+const url = 'url';
+const uuid = 'uuid';
+const remote = 'remote';
+const commit = 'commit';
 const exported = {
-  svnRepository,
-  svnPath,
-  name,
+  uuid,
+  remote,
+  commit,
 };
 
 describe('src', () => {
@@ -19,7 +20,10 @@ describe('src', () => {
         let Project;
 
         beforeEach(() => {
-          sinon.stub(git, 'create').resolves(undefined);
+          sinon.stub(git, 'create').resolves({
+            remote,
+            commit,
+          });
           Project = projectFactory({
           });
         });
@@ -31,15 +35,16 @@ describe('src', () => {
         describe('create', () => {
           it('should construct a new Project and init it', async () => {
             const project = await Project.create({
-              svnRepository,
-              svnPath,
-              name,
+              uuid,
+              url,
             });
             git.create.should.have.been.calledWith({
+              uuid,
+              url,
             });
-            project.svnRepository.should.eql(svnRepository);
-            project.svnPath.should.eql(svnPath);
-            project.name.should.eql(name);
+            project.uuid.should.eql(uuid);
+            project.remote.should.eql(remote);
+            project.commit.should.eql(commit);
           });
         });
 
@@ -53,9 +58,9 @@ describe('src', () => {
           });
 
           it('should populate the instance', () => {
-            project.svnRepository.should.eql(svnRepository);
-            project.svnPath.should.eql(svnPath);
-            project.name.should.eql(name);
+            project.uuid.should.eql(uuid);
+            project.remote.should.eql(remote);
+            project.commit.should.eql(commit);
           });
 
           describe('export', () => {

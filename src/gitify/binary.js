@@ -14,14 +14,14 @@ export default class Binary {
     this.args = args;
   }
 
-  exec(args) {
+  exec(args, options) {
     return new Promise((resolve, reject) => {
       const allArgs = this.args.concat(args);
       logger.debug({
         spawn: this.binary,
         args: allArgs,
       });
-      const child = spawn(this.binary, allArgs);
+      const child = spawn(this.binary, allArgs, options);
       let output = '';
       const appendOutput = (data) => {
         output += data.toString();

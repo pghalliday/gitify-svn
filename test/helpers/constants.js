@@ -1,11 +1,14 @@
 /* eslint-disable max-len */
 
 import {
+  resolve,
+} from 'path';
+import {
   NODE_KIND,
   ACTION,
 } from '../../src/gitify/svn';
 
-export const BINARY = './test/mocks/binary.sh';
+export const BINARY = resolve('./test/mocks/binary.sh');
 export const DIRECTORY_INFO = `
 <?xml version="1.0" encoding="UTF-8"?>
 <info>

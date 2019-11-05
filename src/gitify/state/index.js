@@ -63,7 +63,6 @@ export function stateFactory({
       url,
     }) {
       let svnRepository = find(this.svnRepositories, {url});
-      console.log(svnRepository);
       if (svnRepository) {
         // eslint-disable-next-line max-len
         logger.debug(`SVN repository already added: ${url}: ${svnRepository.uuid}`);

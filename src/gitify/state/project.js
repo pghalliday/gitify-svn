@@ -7,57 +7,56 @@ export function projectFactory({
 }) {
   return class Project {
     static async create({
-      svnRepository,
-      svnPath,
-      name,
+      url,
+      uuid,
     }) {
       // eslint-disable-next-line max-len
-      logger.debug(`Creating a new project: ${svnRepository}: ${svnPath}: ${name}`);
+      logger.debug(`Creating a new project: ${url}: ${uuid}`);
       const project = new Project({
-        svnRepository,
-        svnPath,
-        name,
+        uuid,
       });
-      await project._init();
+      await project._init(url);
       return project;
     }
 
     constructor({
-      svnRepository,
-      svnPath,
-      name,
+      uuid,
+      url,
       exported,
     }) {
       if (exported) {
         this._import(exported);
       } else {
-        this.svnRepository = svnRepository;
-        this.svnPath = svnPath;
-        this.name = name;
+        this.uuid = uuid;
       }
     }
 
     _import(exported) {
       logger.debug(`Importing project`);
       logger.debug(exported);
-      this.svnRepository = exported.svnRepository;
-      this.svnPath = exported.svnPath;
-      this.name = exported.name;
+      this.uuid = exported.uuid;
+      this.remote = exported.remote;
+      this.commit = exported.commit;
     }
 
     export() {
       logger.debug(`Exporting project`);
       const exported = {
-        svnRepository: this.svnRepository,
-        svnPath: this.svnPath,
-        name: this.name,
+        uuid: this.uuid,
+        remote: this.remote,
+        commit: this.commit,
       };
       logger.debug(exported);
       return exported;
     }
 
-    async _init() {
-      await git.create({});
+    async _init(url) {
+      const response = await git.create({
+        uuid: this.uuid,
+        url,
+      });
+      this.remote = response.remote;
+      this.commit = response.commit;
     }
   };
 }

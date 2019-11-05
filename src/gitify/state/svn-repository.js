@@ -1,8 +1,4 @@
 import {
-  mapValues,
-} from 'lodash';
-import {
-  ROOT_PROJECT_NAME,
   promptConfirmRoot,
 } from '../../constants';
 import {
@@ -48,10 +44,7 @@ export function svnRepositoryFactory({
       this.url = exported.url;
       this.last = exported.last;
       this.uuid = exported.uuid;
-      this.projects = mapValues(
-          exported.projects,
-          importObject(Project)
-      );
+      this.project = importObject(Project)(exported.project);
     }
 
     export() {
@@ -60,7 +53,7 @@ export function svnRepositoryFactory({
         url: this.url,
         last: this.last,
         uuid: this.uuid,
-        projects: mapValues(this.projects, exportObject),
+        project: exportObject(this.project),
       };
       logger.debug(exported);
       return exported;
@@ -87,13 +80,10 @@ export function svnRepositoryFactory({
         }
       }
       this.uuid = info.repositoryUuid;
-      this.projects = {
-        [ROOT_PROJECT_NAME]: await Project.create({
-          svnRepository: this.uuid,
-          svnPath: '/',
-          name: ROOT_PROJECT_NAME,
-        }),
-      };
+      this.project = await Project.create({
+        uuid: this.uuid,
+        url: this.url,
+      });
     }
 
     async getNext() {
