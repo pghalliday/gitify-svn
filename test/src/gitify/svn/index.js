@@ -1,8 +1,7 @@
 import {
-  Svn,
+  svnFactory,
 } from '../../../../src/gitify/svn';
 import {
-  SVN_MOCK,
   DIRECTORY_INFO,
   PARSED_DIRECTORY_INFO,
   VALID_LOG,
@@ -19,6 +18,15 @@ import {
   RequestMock,
 } from '../../../mocks/request';
 import credentials from '../../../../src/gitify/svn/credentials';
+import Binary from '../../../../src/gitify/binary';
+import {
+  createInstance,
+  createConstructor,
+  checkConstructed,
+  stubResolves,
+} from '../../../helpers/utils';
+
+const bin = 'bin';
 
 const username = 'username';
 const password = 'password';
@@ -32,30 +40,52 @@ const destination = 'destination';
 describe('src', () => {
   describe('gitify', () => {
     describe('svn', () => {
-      let init;
+      let binary;
+      let FakeBinary;
+      let Svn;
       let svn;
 
       before(() => {
-        init = sinon.stub(credentials, 'init');
-        init.resolves(undefined);
+        sinon.stub(credentials, 'init');
+        credentials.init.resolves(undefined);
         credentials.auth = auth;
         credentials.args = args;
+        binary = createInstance(Binary, {
+          exec: sinon.stub(),
+        });
+        FakeBinary = createConstructor([
+          binary,
+        ]);
+        Svn = svnFactory({
+          Binary: FakeBinary,
+        });
+        svn = new Svn();
+      });
+
+      after(() => {
+        credentials.init.restore();
       });
 
       describe('init', () => {
         before(async () => {
-          svn = new Svn();
           await svn.init({
             username,
             password,
-            svnBinary: SVN_MOCK,
+            binary: bin,
           });
         });
 
         it('should initialise the credentials', () => {
-          init.should.have.been.calledWith({
+          credentials.init.should.have.been.calledWith({
             username,
             password,
+          });
+        });
+
+        it('should create the Binary instance', () => {
+          checkConstructed(FakeBinary, {
+            binary: bin,
+            args: credentials.args,
           });
         });
 
@@ -177,120 +207,73 @@ describe('src', () => {
           });
         });
 
-        describe('when the svn executable can be found', () => {
-          describe('exec', () => {
-            it('should return the output on zero exit code', async () => {
-              const output = await svn.exec(['arg1', 'arg2']);
-              output.should.eql(
-                  'args arg1 arg2\n'
-              );
-            });
-
-            it('should error on non-zero exit code', async () => {
-              await svn.exec(['error'])
-                  .should.be.rejectedWith(
-                      'Exited with code: 1\nOutput:\n\nargs error\n'
-                  );
-            });
+        describe('log', () => {
+          before(() => {
+            stubResolves(binary.exec, VALID_LOG);
           });
 
-          describe('log', () => {
-            before(() => {
-              sinon.stub(svn, 'exec').callsFake(() => VALID_LOG);
-            });
-
-            after(() => {
-              svn.exec.restore();
-            });
-
-            // eslint-disable-next-line max-len
-            it('should request a verbose xml log for the revision', async () => {
-              const log = await svn.log({repository, revision});
-              svn.exec.should.have.been.calledWith([
-                'log',
-                `${encodeURI(repository)}`,
-                '--xml',
-                '-v',
-                '-r',
-                revision,
-              ]);
-              log.should.eql(PARSED_VALID_LOG);
-            });
-          });
-
-          describe('info', () => {
-            before(() => {
-              sinon.stub(svn, 'exec').callsFake(() => DIRECTORY_INFO);
-            });
-
-            after(() => {
-              svn.exec.restore();
-            });
-
-            // eslint-disable-next-line max-len
-            it('should request xml info for the path and revision', async () => {
-              const info = await svn.info({
-                repository,
-                path,
-                revision,
-              });
-              svn.exec.should.have.been.calledWith(
-                  ['info', `${encodeURI(repository+path)}@${revision}`, '--xml']
-              );
-              info.should.eql(PARSED_DIRECTORY_INFO);
-            });
-          });
-
-          describe('diffProps', () => {
-            before(() => {
-              sinon.stub(svn, 'exec').callsFake(() => VALID_DIFF_PROPS);
-            });
-
-            after(() => {
-              svn.exec.restore();
-            });
-
-            // eslint-disable-next-line max-len
-            it('should request diff of SVN propertiesfor the revision', async () => {
-              const diffProps = await svn.diffProps({
-                repository,
-                revision,
-              });
-              svn.exec.should.have.been.calledWith([
-                'diff',
-                `${encodeURI(repository)}`,
-                '-c',
-                revision,
-                '--properties-only',
-              ]);
-              diffProps.should.eql(PARSED_VALID_DIFF_PROPS);
-            });
-          });
-
-          describe('revision', () => {
-            it('should throw a not implemented error', async () => {
-              await svn.revision({
-                repository,
-                revision: 1,
-              }).should.be.rejectedWith('Svn: revision: not yet implemented');
-            });
+          // eslint-disable-next-line max-len
+          it('should request a verbose xml log for the revision', async () => {
+            const log = await svn.log({repository, revision});
+            binary.exec.should.have.been.calledWith([
+              'log',
+              `${encodeURI(repository)}`,
+              '--xml',
+              '-v',
+              '-r',
+              revision,
+            ]);
+            log.should.eql(PARSED_VALID_LOG);
           });
         });
 
-        describe('when the svn executable cannot be found', () => {
-          before(async () => {
-            svn = new Svn();
-            await svn.init({
-              username,
-              password,
-              svnBinary: 'invalid-binary',
-            });
+        describe('info', () => {
+          before(() => {
+            stubResolves(binary.exec, DIRECTORY_INFO);
           });
 
-          describe('exec', () => {
-            it('should error', async () => {
-              await svn.exec([0, 'arg']).should.be.rejectedWith('ENOENT');
+          // eslint-disable-next-line max-len
+          it('should request xml info for the path and revision', async () => {
+            const info = await svn.info({
+              repository,
+              path,
+              revision,
             });
+            binary.exec.should.have.been.calledWith(
+                ['info', `${encodeURI(repository+path)}@${revision}`, '--xml']
+            );
+            info.should.eql(PARSED_DIRECTORY_INFO);
+          });
+        });
+
+        describe('diffProps', () => {
+          before(() => {
+            stubResolves(binary.exec, VALID_DIFF_PROPS);
+          });
+
+          // eslint-disable-next-line max-len
+          it('should request diff of SVN propertiesfor the revision', async () => {
+            const diffProps = await svn.diffProps({
+              repository,
+              revision,
+            });
+            binary.exec.should.have.been.calledWith([
+              'diff',
+              `${encodeURI(repository)}`,
+              '-c',
+              revision,
+              '--properties-only',
+            ]);
+            diffProps.should.eql(PARSED_VALID_DIFF_PROPS);
+          });
+        });
+
+        describe('revision', () => {
+          it('should throw a not implemented error', async () => {
+            await svn.revision({
+              repository,
+              revision: 1,
+            }).should.be.rejectedWith('Svn: revision: not yet implemented');
           });
         });
       });

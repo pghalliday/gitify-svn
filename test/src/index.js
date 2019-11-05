@@ -1,6 +1,6 @@
 import * as gitify from '../../src';
 describe('src', () => {
-  it('should export exec', () => {
-    gitify.exec.should.be.ok;
+  it('should export start', () => {
+    gitify.start.should.be.ok;
   });
 });

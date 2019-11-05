@@ -19,7 +19,7 @@ module.exports = function(argv) {
     process.stdout.write(help());
     process.exit(0);
   }
-  return gitify.exec(opts)
+  return gitify.start(opts)
       .catch(
           // istanbul ignore next
           (error) => {

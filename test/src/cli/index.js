@@ -6,15 +6,15 @@ const argv = [];
 describe('src', () => {
   describe('cli', () => {
     before(async () => {
-      sinon.stub(gitify, 'exec').callsFake(() => Promise.resolve());
+      sinon.stub(gitify, 'start').callsFake(() => Promise.resolve());
       await cli(argv);
     });
     after(() => {
-      gitify.exec.restore();
+      gitify.start.restore();
     });
 
     it('should execute the command', () => {
-      gitify.exec.should.have.been.calledWithMatch({});
+      gitify.start.should.have.been.calledWithMatch({});
     });
   });
 });

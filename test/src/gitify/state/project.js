@@ -1,10 +1,7 @@
-import projectFactory from '../../../../src/gitify/state/project';
-import Git from '../../../../src/gitify/git';
 import {
-  createInstance,
-  createConstructor,
-  checkConstructed,
-} from '../../../helpers/utils';
+  projectFactory,
+} from '../../../../src/gitify/state/project';
+import git from '../../../../src/gitify/git';
 
 const svnRepository = 'svnRepository';
 const svnPath = 'svnPath';
@@ -19,16 +16,16 @@ describe('src', () => {
   describe('gitify', () => {
     describe('state', () => {
       describe('Project', () => {
-        let FakeGit;
-        let git;
         let Project;
 
         beforeEach(() => {
-          git = createInstance(Git);
-          FakeGit = createConstructor(git);
+          sinon.stub(git, 'create').resolves(undefined);
           Project = projectFactory({
-            Git: FakeGit,
           });
+        });
+
+        afterEach(() => {
+          git.create.restore();
         });
 
         describe('create', () => {
@@ -38,11 +35,8 @@ describe('src', () => {
               svnPath,
               name,
             });
-            checkConstructed(FakeGit, {
-              folder: svnRepository,
-              name,
+            git.create.should.have.been.calledWith({
             });
-            git.init.should.have.been.calledOnce;
             project.svnRepository.should.eql(svnRepository);
             project.svnPath.should.eql(svnPath);
             project.name.should.eql(name);
@@ -55,13 +49,6 @@ describe('src', () => {
           beforeEach(() => {
             project = new Project({
               exported,
-            });
-          });
-
-          it('should create the git instance', () => {
-            checkConstructed(FakeGit, {
-              folder: svnRepository,
-              name,
             });
           });
 

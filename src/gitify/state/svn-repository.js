@@ -12,10 +12,11 @@ import {
 import loggerFactory from '../../logger';
 import prompt from '../prompt';
 import svn from '../svn';
+import Project from './project';
 
 const logger = loggerFactory.create(__filename);
 
-export default function svnRepositoryFactory({
+export function svnRepositoryFactory({
   Project,
 }) {
   return class SvnRepository {
@@ -113,3 +114,7 @@ export default function svnRepositoryFactory({
   };
 }
 
+const SvnRepository = svnRepositoryFactory({
+  Project,
+});
+export default SvnRepository;

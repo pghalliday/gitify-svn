@@ -1,5 +1,7 @@
-import svnRepositoryFactory from '../../../../src/gitify/state/svn-repository';
-import projectFactory from '../../../../src/gitify/state/project';
+import {
+  svnRepositoryFactory,
+} from '../../../../src/gitify/state/svn-repository';
+import Project from '../../../../src/gitify/state/project';
 import prompt from '../../../../src/gitify/prompt';
 import svn from '../../../../src/gitify/svn';
 import {
@@ -13,8 +15,6 @@ import {
   checkCreated,
   stubResolves,
 } from '../../../helpers/utils';
-
-const Project = projectFactory({});
 
 const url = 'url';
 const incorrectUrl = 'incorrectUrl';

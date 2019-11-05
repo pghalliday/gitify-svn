@@ -6,6 +6,7 @@ import _ from 'lodash';
 import {
   USAGE_TEXT,
   DEFAULT_SVN_BINARY,
+  DEFAULT_GIT_BINARY,
   DEFAULT_LOG_LEVEL,
 } from '../../../src/constants';
 
@@ -14,6 +15,7 @@ const username = 'username';
 const password = 'password';
 const workingDir = 'workingDir';
 const svnBinary = 'svnBinary';
+const gitBinary = 'gitBinary';
 const logLevel = 'logLevel';
 
 const fullVersionOption = [
@@ -48,6 +50,8 @@ const shortOptions = [
   password,
   '-w',
   workingDir,
+  '-g',
+  gitBinary,
   '-s',
   svnBinary,
   '-l',
@@ -63,6 +67,8 @@ const fullOptions = [
   password,
   '--working-dir',
   workingDir,
+  '--git-binary',
+  gitBinary,
   '--svn-binary',
   svnBinary,
   '--log-level',
@@ -128,6 +134,7 @@ describe('src', () => {
               options.username.should.eql(username);
               options.password.should.eql(password);
               options['working-dir'].should.eql(workingDir);
+              options['git-binary'].should.eql(gitBinary);
               options['svn-binary'].should.eql(svnBinary);
               options['log-level'].should.eql(logLevel);
             });
@@ -140,6 +147,7 @@ describe('src', () => {
           });
 
           it('should set default options', () => {
+            options['git-binary'].should.eql(DEFAULT_GIT_BINARY);
             options['svn-binary'].should.eql(DEFAULT_SVN_BINARY);
             options['log-level'].should.eql(DEFAULT_LOG_LEVEL);
           });

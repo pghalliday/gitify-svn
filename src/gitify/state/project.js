@@ -1,9 +1,9 @@
 import loggerFactory from '../../logger';
+import git from '../git';
 
 const logger = loggerFactory.create(__filename);
 
-export default function projectFactory({
-  Git,
+export function projectFactory({
 }) {
   return class Project {
     static async create({
@@ -35,10 +35,6 @@ export default function projectFactory({
         this.svnPath = svnPath;
         this.name = name;
       }
-      this.git = new Git({
-        folder: this.svnRepository,
-        name: this.name,
-      });
     }
 
     _import(exported) {
@@ -61,7 +57,11 @@ export default function projectFactory({
     }
 
     async _init() {
-      await this.git.init();
+      await git.create({});
     }
   };
 }
+
+const Project = projectFactory({
+});
+export default Project;

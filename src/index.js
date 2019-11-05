@@ -1,7 +1,7 @@
 import {
-  exec,
-} from './gitify/exec';
+  start,
+} from './gitify/start';
 
 module.exports = {
-  exec,
+  start,
 };

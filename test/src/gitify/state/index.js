@@ -1,7 +1,7 @@
 import {
   stateFactory,
 } from '../../../../src/gitify/state';
-import svnRepositoryFactory from '../../../../src/gitify/state/svn-repository';
+import SvnRepository from '../../../../src/gitify/state/svn-repository';
 import prompt from '../../../../src/gitify/prompt';
 import stateFile from '../../../../src/gitify/state/state-file';
 // eslint-disable-next-line max-len
@@ -17,8 +17,6 @@ import {
   stubReturns,
   stubResolves,
 } from '../../../helpers/utils';
-
-const SvnRepository = svnRepositoryFactory({});
 
 const url = 'url';
 const uuid = 'uuid';

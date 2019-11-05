@@ -2,6 +2,7 @@ import minimist from 'minimist';
 import cliclopts from 'cliclopts';
 import {
   USAGE_TEXT,
+  DEFAULT_GIT_BINARY,
   DEFAULT_SVN_BINARY,
   DEFAULT_LOG_LEVEL,
 } from '../constants';
@@ -26,6 +27,11 @@ const cliOpts = cliclopts([{
   name: 'working-dir',
   abbr: 'w',
   help: 'The working directory',
+}, {
+  name: 'git-binary',
+  abbr: 'g',
+  help: 'The Git binary to use',
+  default: DEFAULT_GIT_BINARY,
 }, {
   name: 'svn-binary',
   abbr: 's',
