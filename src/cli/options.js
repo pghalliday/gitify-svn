@@ -15,7 +15,8 @@ const logger = getLogger(__filename);
 const cliOpts = cliclopts([{
   name: 'repository',
   abbr: 'r',
-  help: 'The SVN repository root URL to start with',
+  // eslint-disable-next-line max-len
+  help: 'An SVN repository root URL to convert (can be specified multiple times',
 }, {
   name: 'username',
   abbr: 'u',

@@ -16,9 +16,6 @@ import {
 } from 'fs';
 import credentials from './credentials';
 import {
-  DEFAULT_SVN_BINARY,
-} from '../../constants';
-import {
   getLogger,
 } from '../../logger';
 
@@ -30,18 +27,16 @@ export {
 } from './lib/shared';
 
 export class Svn {
-  constructor(svnBinary = DEFAULT_SVN_BINARY) {
-    this.svnBinary = svnBinary;
-  }
-
   async init({
     username,
     password,
+    svnBinary,
   }) {
     await credentials.init({
       username,
       password,
     });
+    this.svnBinary = svnBinary;
   }
 
   download({

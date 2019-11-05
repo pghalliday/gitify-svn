@@ -40,14 +40,15 @@ describe('src', () => {
         init.resolves(undefined);
         credentials.auth = auth;
         credentials.args = args;
-        svn = new Svn(SVN_MOCK);
       });
 
       describe('init', () => {
         before(async () => {
+          svn = new Svn();
           await svn.init({
             username,
             password,
+            svnBinary: SVN_MOCK,
           });
         });
 
@@ -278,10 +279,11 @@ describe('src', () => {
 
         describe('when the svn executable cannot be found', () => {
           before(async () => {
-            svn = new Svn('invalid-binary');
+            svn = new Svn();
             await svn.init({
               username,
               password,
+              svnBinary: 'invalid-binary',
             });
           });
 
