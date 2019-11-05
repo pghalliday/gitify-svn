@@ -49,8 +49,16 @@ describe('src', () => {
 
             it('should set the credentials without prompting', () => {
               credentials.should.eql({
-                username: user,
-                password: pass,
+                auth: {
+                  user,
+                  pass,
+                },
+                args: [
+                  '--username',
+                  user,
+                  '--password',
+                  pass,
+                ],
               });
             });
           });
@@ -66,8 +74,16 @@ describe('src', () => {
               input.should.have.been.calledWith(PROMPT_SVN_USERNAME);
               password.should.have.been.calledWith(promptSvnPassword(user));
               credentials.should.eql({
-                username: user,
-                password: pass,
+                auth: {
+                  user,
+                  pass,
+                },
+                args: [
+                  '--username',
+                  user,
+                  '--password',
+                  pass,
+                ],
               });
             });
           });

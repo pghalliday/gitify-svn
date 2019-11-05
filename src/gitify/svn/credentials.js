@@ -9,14 +9,22 @@ export class Credentials {
     username,
     password,
   }) {
-    this.username = username;
-    this.password = password;
-    if (!this.username) {
-      this.username = await prompt.input(PROMPT_SVN_USERNAME);
+    if (!username) {
+      username = await prompt.input(PROMPT_SVN_USERNAME);
     }
-    if (!this.password) {
-      this.password = await prompt.password(promptSvnPassword(this.username));
+    if (!password) {
+      password = await prompt.password(promptSvnPassword(username));
     }
+    this.args = [
+      '--username',
+      username,
+      '--password',
+      password,
+    ];
+    this.auth = {
+      user: username,
+      pass: password,
+    };
   }
 }
 

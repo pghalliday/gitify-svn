@@ -34,18 +34,14 @@ export class Svn {
     this.svnBinary = svnBinary;
   }
 
-  async init() {
-    await credentials.init();
-    this.args = [
-      '--username',
-      credentials.username,
-      '--password',
-      credentials.password,
-    ];
-    this.auth = {
-      user: credentials.username,
-      pass: credentials.password,
-    };
+  async init({
+    username,
+    password,
+  }) {
+    await credentials.init({
+      username,
+      password,
+    });
   }
 
   download({
@@ -66,7 +62,7 @@ export class Svn {
       const url = `${repository}/!svn/bc/${revision}${path}`;
       logger.debug(`Downloading file from ${url} to ${destination}`);
       request.get(url, {
-        auth: this.auth,
+        auth: credentials.auth,
       })
           .on('error', (error) => {
             reject(error);
@@ -89,7 +85,7 @@ export class Svn {
 
   exec(args) {
     return new Promise((resolve, reject) => {
-      const allArgs = this.args.concat(args);
+      const allArgs = credentials.args.concat(args);
       logger.debug({
         spawn: this.svnBinary,
         args: allArgs,

@@ -22,6 +22,8 @@ import credentials from '../../../../src/gitify/svn/credentials';
 
 const username = 'username';
 const password = 'password';
+const auth = 'auth';
+const args = ['args'];
 const repository = 'the repository';
 const revision = 'revision';
 const path = 'the path';
@@ -36,18 +38,24 @@ describe('src', () => {
       before(() => {
         init = sinon.stub(credentials, 'init');
         init.resolves(undefined);
-        credentials.username = username;
-        credentials.password = password;
+        credentials.auth = auth;
+        credentials.args = args;
         svn = new Svn(SVN_MOCK);
       });
 
       describe('init', () => {
         before(async () => {
-          await svn.init();
+          await svn.init({
+            username,
+            password,
+          });
         });
 
         it('should initialise the credentials', () => {
-          init.should.have.been.calledOnce;
+          init.should.have.been.calledWith({
+            username,
+            password,
+          });
         });
 
         describe('download', () => {
@@ -161,10 +169,7 @@ describe('src', () => {
               entry.data.should.eql(JSON.stringify({
                 url: `${repository}/!svn/bc/${revision}${path}`,
                 options: {
-                  auth: {
-                    user: username,
-                    pass: password,
-                  },
+                  auth,
                 },
               }), null, 2);
             });
@@ -176,15 +181,14 @@ describe('src', () => {
             it('should return the output on zero exit code', async () => {
               const output = await svn.exec(['arg1', 'arg2']);
               output.should.eql(
-                  '--username username --password password arg1 arg2\n'
+                  'args arg1 arg2\n'
               );
             });
 
             it('should error on non-zero exit code', async () => {
               await svn.exec(['error'])
                   .should.be.rejectedWith(
-                      // eslint-disable-next-line max-len
-                      'Exited with code: 1\nOutput:\n\n--username username --password password error\n'
+                      'Exited with code: 1\nOutput:\n\nargs error\n'
                   );
             });
           });
@@ -275,7 +279,10 @@ describe('src', () => {
         describe('when the svn executable cannot be found', () => {
           before(async () => {
             svn = new Svn('invalid-binary');
-            await svn.init();
+            await svn.init({
+              username,
+              password,
+            });
           });
 
           describe('exec', () => {
