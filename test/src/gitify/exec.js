@@ -36,7 +36,6 @@ describe('src', () => {
       forEach(scenarios, (value, key) => {
         describe(key, () => {
           beforeEach(async () => {
-            console.log(state.init);
             sinon.stub(workingDirectory, 'init').resolves(undefined);
             sinon.stub(svn, 'init').resolves(undefined);
             sinon.stub(state, 'init').resolves(undefined);
@@ -56,7 +55,9 @@ describe('src', () => {
           });
 
           it('should initialise the working directory', () => {
-            workingDirectory.init.should.have.been.calledWith(workingDir);
+            workingDirectory.init.should.have.been.calledWith({
+              path: workingDir,
+            });
             // eslint-disable-next-line max-len
             workingDirectory.init.should.have.been.calledBefore(loggerFactory.init);
           });
@@ -76,7 +77,9 @@ describe('src', () => {
           });
 
           it('should initialise the state', () => {
-            state.init.should.have.been.calledWith(value.repositories);
+            state.init.should.have.been.calledWith({
+              repositories: value.repositories,
+            });
           });
         });
       });

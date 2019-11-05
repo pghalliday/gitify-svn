@@ -20,7 +20,6 @@ Options:
 `;
 // eslint-disable-next-line max-len
 export const PROMPT_REPOSITORY_URL = 'Enter the root URL of an SVN repository to convert';
-export const PROMPT_REPOSITORY_NAME = 'Enter a name for the SVN repository';
 // eslint-disable-next-line max-len
 export const promptConfirmRoot = (url) => `Do you wish to switch to the repository root: ${url}`;
 // eslint-disable-next-line max-len

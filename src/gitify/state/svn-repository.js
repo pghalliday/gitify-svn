@@ -21,12 +21,10 @@ export default function svnRepositoryFactory({
   return class SvnRepository {
     static async create({
       url,
-      name,
     }) {
-      logger.debug(`Creating SvnRepository: ${url}: ${name}`);
+      logger.debug(`Creating SvnRepository: ${url}`);
       const svnRepository = new SvnRepository({
         url,
-        name,
       });
       await svnRepository._init();
       return svnRepository;
@@ -34,14 +32,12 @@ export default function svnRepositoryFactory({
 
     constructor({
       url,
-      name,
       exported,
     }) {
       if (exported) {
         this._import(exported);
       } else {
         this.url = url;
-        this.name = name;
       }
     }
 
@@ -49,7 +45,6 @@ export default function svnRepositoryFactory({
       logger.debug(`Importing SvnRepository`);
       logger.debug(exported);
       this.url = exported.url;
-      this.name = exported.name;
       this.last = exported.last;
       this.uuid = exported.uuid;
       this.projects = mapValues(
@@ -62,7 +57,6 @@ export default function svnRepositoryFactory({
       logger.debug(`Exporting SvnRepository`);
       const exported = {
         url: this.url,
-        name: this.name,
         last: this.last,
         uuid: this.uuid,
         projects: mapValues(this.projects, exportObject),
@@ -112,7 +106,7 @@ export default function svnRepositoryFactory({
     }
 
     resolve() {
-      logger.info(`${this.name}: Resolving revision: ${this._next.revision}`);
+      logger.info(`${this.url}: Resolving revision: ${this._next.revision}`);
       this.last = this._next.revision;
       delete this._next;
     }

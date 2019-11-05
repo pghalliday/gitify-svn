@@ -8,7 +8,6 @@ import stateFile from '../../../../src/gitify/state/state-file';
 import repositoriesDirectory from '../../../../src/gitify/state/repositories-directory';
 import {
   PROMPT_REPOSITORY_URL,
-  PROMPT_REPOSITORY_NAME,
 } from '../../../../src/constants';
 import {
   createInstance,
@@ -22,13 +21,10 @@ import {
 const SvnRepository = svnRepositoryFactory({});
 
 const url = 'url';
-const name = 'name';
 const uuid = 'uuid';
 const url2 = 'url2';
-const name2 = 'name2';
 const uuid2 = 'uuid2';
 const url3 = 'url3';
-const name3 = 'name3';
 const uuid3 = 'uuid3';
 const revision = {
   date: new Date('2019-01-01'),
@@ -48,6 +44,11 @@ const exported = {
     [uuid]: exportedSvnRepository,
   },
 };
+const repositories = [
+  url,
+  url2,
+  url3,
+];
 
 describe('src', () => {
   describe('gitify', () => {
@@ -80,14 +81,17 @@ describe('src', () => {
           getNext,
         });
         svnRepository.uuid = uuid;
+        svnRepository.url = url;
         svnRepository2 = createInstance(SvnRepository, {
           getNext: getNext2,
         });
         svnRepository2.uuid = uuid2;
+        svnRepository2.url = url2;
         svnRepository3 = createInstance(SvnRepository, {
           getNext: getNext3,
         });
         svnRepository3.uuid = uuid3;
+        svnRepository3.url = url3;
         FakeSvnRepository = createConstructor([
           svnRepository,
           svnRepository2,
@@ -106,23 +110,43 @@ describe('src', () => {
         init.restore();
       });
 
-      describe('init with no state file', () => {
+      describe('init with repositories', () => {
         beforeEach(async () => {
           stubResolves(read, undefined);
-          await state.init();
+          await state.init({repositories});
         });
 
         it('should initialise the repositories directory', () => {
           init.should.have.been.called;
         });
 
-        it('should initialise a new state', () => {
-          state.svnRepositories.should.eql({});
+        it('should add the given repositories', () => {
+          state.svnRepositories.should.eql({
+            [uuid]: svnRepository,
+            [uuid2]: svnRepository2,
+            [uuid3]: svnRepository3,
+          });
+        });
+      });
+
+      describe('init with no state file', () => {
+        beforeEach(async () => {
+          stubResolves(read, undefined);
+          await state.init({repositories: []});
+        });
+
+        it('should initialise the repositories directory', () => {
+          init.should.have.been.called;
+        });
+
+        it('should init the state', () => {
+          state.svnRepositories.should.eql({
+          });
         });
 
         describe('then getNext', () => {
           beforeEach(async () => {
-            stubReturns(input, [url, name]);
+            stubReturns(input, [url]);
             stubResolves(getNext, revision);
             next = await state.getNext();
           });
@@ -132,11 +156,7 @@ describe('src', () => {
             prompt.input.getCall(0).should.have.been.calledWith(
                 PROMPT_REPOSITORY_URL
             );
-            prompt.input.getCall(1).should.have.been.calledWith(
-                PROMPT_REPOSITORY_NAME
-            );
             checkCreated(FakeSvnRepository, {
-              name,
               url,
             });
             state.svnRepositories.should.eql({
@@ -152,14 +172,12 @@ describe('src', () => {
         describe('then addSvnRepository', () => {
           beforeEach(async () => {
             await state.addSvnRepository({
-              name,
               url,
             });
           });
 
           it('should add the SVN repository', () => {
             checkCreated(FakeSvnRepository, {
-              name,
               url,
             });
             state.svnRepositories.should.eql({
@@ -187,17 +205,29 @@ describe('src', () => {
             });
           });
 
+          describe('then addSvnRepository again with the same url', () => {
+            beforeEach(async () => {
+              await state.addSvnRepository({
+                url,
+              });
+            });
+
+            it('should not add the SVN repository', () => {
+              state.svnRepositories.should.eql({
+                [uuid]: svnRepository,
+              });
+            });
+          });
+
           describe('then addSvnRepository again', () => {
             beforeEach(async () => {
               await state.addSvnRepository({
-                name: name2,
                 url: url2,
               });
             });
 
             it('should add the SVN repository', () => {
               checkCreated(FakeSvnRepository, {
-                name: name2,
                 url: url2,
               });
               state.svnRepositories.should.eql({
@@ -258,7 +288,7 @@ describe('src', () => {
               let next;
 
               beforeEach(async () => {
-                stubReturns(input, [url3, name3]);
+                stubReturns(input, [url3]);
                 stubResolves(getNext, undefined);
                 stubResolves(getNext2, undefined);
                 stubResolves(getNext3, revision3);
@@ -270,11 +300,7 @@ describe('src', () => {
                 prompt.input.getCall(0).should.have.been.calledWith(
                     PROMPT_REPOSITORY_URL
                 );
-                prompt.input.getCall(1).should.have.been.calledWith(
-                    PROMPT_REPOSITORY_NAME
-                );
                 checkCreated(FakeSvnRepository, {
-                  name: name3,
                   url: url3,
                 });
                 state.svnRepositories.should.eql({
@@ -323,7 +349,7 @@ describe('src', () => {
       describe('init with a state file', () => {
         beforeEach(async () => {
           stubResolves(read, exported);
-          await state.init();
+          await state.init({repositories: []});
         });
 
         it('should populate the instance', () => {

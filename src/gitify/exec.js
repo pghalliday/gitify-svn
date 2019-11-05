@@ -12,7 +12,9 @@ export async function exec({
   ['working-dir']: workingDir,
   ['svn-binary']: svnBinary,
 }) {
-  await workingDirectory.init(workingDir);
+  await workingDirectory.init({
+    path: workingDir,
+  });
   loggerFactory.init();
   logger.info('Starting...');
   await svn.init({
@@ -22,5 +24,7 @@ export async function exec({
   });
   // eslint-disable-next-line max-len
   const repositories = Array.isArray(repository) ? repository : repository ? [repository] : [];
-  await state.init(repositories);
+  await state.init({
+    repositories,
+  });
 }

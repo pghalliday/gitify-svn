@@ -18,7 +18,6 @@ const Project = projectFactory({});
 
 const url = 'url';
 const incorrectUrl = 'incorrectUrl';
-const name = 'name';
 const uuid = 'uuid';
 const info = {
   repositoryRoot: url,
@@ -37,7 +36,6 @@ const projectName = 'projectName';
 const exportedProject = 'exportedProject';
 const exported = {
   url,
-  name,
   uuid,
   last,
   projects: {
@@ -82,7 +80,6 @@ describe('src', () => {
             it('should construct a new SvnRepository and init it', async () => {
               const svnRepository = await SvnRepository.create({
                 url,
-                name,
               });
               infoMethod.should.have.been.calledWith({
                 repository: url,
@@ -95,7 +92,6 @@ describe('src', () => {
                 name: ROOT_PROJECT_NAME,
               });
               svnRepository.url.should.eql(url);
-              svnRepository.name.should.eql(name);
               svnRepository.uuid.should.eql(uuid);
               svnRepository.last.should.eql(0);
               svnRepository.projects.should.eql({
@@ -114,7 +110,6 @@ describe('src', () => {
               it('should switch to the correct root url', async () => {
                 const svnRepository = await SvnRepository.create({
                   url: incorrectUrl,
-                  name,
                 });
                 confirm.should.have.been.calledWith(
                     promptConfirmRoot(url),
@@ -126,7 +121,6 @@ describe('src', () => {
                   name: ROOT_PROJECT_NAME,
                 });
                 svnRepository.url.should.eql(url);
-                svnRepository.name.should.eql(name);
                 svnRepository.uuid.should.eql(uuid);
                 svnRepository.last.should.eql(0);
                 svnRepository.projects.should.eql({
@@ -144,7 +138,6 @@ describe('src', () => {
               it('should throw an error', async () => {
                 await SvnRepository.create({
                   url: incorrectUrl,
-                  name,
                 }).should.be.rejectedWith(
                     'Can only convert the root of an SVN repository'
                 );
@@ -164,7 +157,6 @@ describe('src', () => {
 
           it('should populate the instance', () => {
             svnRepository.url.should.eql(url);
-            svnRepository.name.should.eql(name);
             svnRepository.uuid.should.eql(uuid);
             svnRepository.last.should.eql(last);
             checkConstructed(FakeProject, {

@@ -1,5 +1,6 @@
 import {
   mapValues,
+  find,
 } from 'lodash';
 import {
   exportObject,
@@ -7,7 +8,6 @@ import {
 } from './lib/utils';
 import {
   PROMPT_REPOSITORY_URL,
-  PROMPT_REPOSITORY_NAME,
 } from '../../constants';
 import loggerFactory from '../../logger';
 import prompt from '../prompt';
@@ -20,7 +20,9 @@ export function stateFactory({
   SvnRepository,
 }) {
   return class State {
-    async init() {
+    async init({
+      repositories,
+    }) {
       await repositoriesDirectory.init();
       const exported = await stateFile.read();
       if (exported) {
@@ -28,6 +30,11 @@ export function stateFactory({
       } else {
         logger.debug('Creating State');
         this.svnRepositories = {};
+      }
+      for (let i = 0; i < repositories.length; i++) {
+        await this.addSvnRepository({
+          url: repositories[i],
+        });
       }
     }
 
@@ -52,23 +59,26 @@ export function stateFactory({
     }
 
     async addSvnRepository({
-      name,
       url,
     }) {
-      logger.info(`Adding new SVN repository: ${name}: ${url}`);
-      const svnRepository = await SvnRepository.create({
-        name,
-        url,
-      });
-      this.svnRepositories[svnRepository.uuid] = svnRepository;
+      let svnRepository = find(this.svnRepositories, {url});
+      console.log(svnRepository);
+      if (svnRepository) {
+        // eslint-disable-next-line max-len
+        logger.debug(`SVN repository already added: ${url}: ${svnRepository.uuid}`);
+      } else {
+        logger.info(`Adding new SVN repository: ${url}`);
+        svnRepository = await SvnRepository.create({
+          url,
+        });
+        this.svnRepositories[svnRepository.uuid] = svnRepository;
+      }
       return svnRepository;
     }
 
     async _promptForNext() {
       const url = await prompt.input(PROMPT_REPOSITORY_URL);
-      const name = await prompt.input(PROMPT_REPOSITORY_NAME);
       const svnRepository = await this.addSvnRepository({
-        name,
         url,
       });
       return svnRepository.getNext();
