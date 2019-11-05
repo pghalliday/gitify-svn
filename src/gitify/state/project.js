@@ -1,8 +1,6 @@
-import {
-  getLogger,
-} from '../../logger';
+import loggerFactory from '../../logger';
 
-const logger = getLogger(__filename);
+const logger = loggerFactory.create(__filename);
 
 export default function projectFactory({
   Git,

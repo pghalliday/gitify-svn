@@ -1,8 +1,5 @@
-import mkdirp from 'mkdirp';
 import path from 'path';
-import {
-  promisify,
-} from 'util';
+import workingDirectory from './gitify/working-directory';
 import {
   createLogger,
   transports,
@@ -24,18 +21,12 @@ const consoleFormat = format.printf(({
   return `${level}: ${message}`;
 });
 
+// istanbul ignore next
 const consoleTransport = new transports.Console({
   format: format.combine(
       format.colorize(),
       consoleFormat,
   ),
-});
-
-const logger = createLogger({
-  level: DEFAULT_LOG_LEVEL,
-  transports: [
-    consoleTransport,
-  ],
 });
 
 // istanbul ignore next
@@ -59,32 +50,40 @@ function overrideHelpers(logger) {
 }
 
 // istanbul ignore next
-function getLogger(file) {
-  return overrideHelpers(logger.child({
-    file: path.relative(__dirname, file),
-  }));
+export class LoggerFactory {
+  constructor() {
+    this.logger = createLogger({
+      level: DEFAULT_LOG_LEVEL,
+      transports: [
+        consoleTransport,
+      ],
+    });
+  }
+
+  init() {
+    this.logger.add(new transports.File({
+      filename: path.join(workingDirectory.path, LOG_FILE),
+      format: format.combine(
+          format.timestamp(),
+          format.json(),
+      ),
+    }));
+  }
+
+  create(file) {
+    return overrideHelpers(this.logger.child({
+      file: path.relative(__dirname, file),
+    }));
+  }
+
+  get level() {
+    return this.logger.level;
+  }
+
+  set level(level) {
+    this.logger.level = level;
+  }
 }
 
-// istanbul ignore next
-function setLogLevel(logLevel) {
-  logger.level = logLevel;
-}
-
-// istanbul ignore next
-async function initFileLogger(workingDir) {
-  logger.debug(`Creating working directory: ${workingDir}`);
-  await promisify(mkdirp)(workingDir);
-  logger.add(new transports.File({
-    filename: path.join(workingDir, LOG_FILE),
-    format: format.combine(
-        format.timestamp(),
-        format.json(),
-    ),
-  }));
-}
-
-module.exports = {
-  getLogger,
-  setLogLevel,
-  initFileLogger,
-};
+const loggerFactory = new LoggerFactory();
+export default loggerFactory;

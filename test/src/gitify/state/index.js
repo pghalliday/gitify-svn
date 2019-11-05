@@ -1,4 +1,6 @@
-import stateFactory from '../../../../src/gitify/state';
+import {
+  stateFactory,
+} from '../../../../src/gitify/state';
 import svnRepositoryFactory from '../../../../src/gitify/state/svn-repository';
 import prompt from '../../../../src/gitify/prompt';
 import stateFile from '../../../../src/gitify/state/state-file';

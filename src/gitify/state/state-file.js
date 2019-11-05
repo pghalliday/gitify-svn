@@ -2,9 +2,7 @@ import workingDirectory from '../working-directory';
 import {
   STATE_FILE,
 } from '../../constants';
-import {
-  getLogger,
-} from '../../logger';
+import loggerFactory from '../../logger';
 import {
   promisify,
 } from 'util';
@@ -16,7 +14,7 @@ import {
   join,
 } from 'path';
 
-const logger = getLogger(__filename);
+const logger = loggerFactory.create(__filename);
 
 export class StateFile {
   async read() {

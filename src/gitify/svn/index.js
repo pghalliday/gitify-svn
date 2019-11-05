@@ -15,11 +15,9 @@ import {
   createWriteStream,
 } from 'fs';
 import credentials from './credentials';
-import {
-  getLogger,
-} from '../../logger';
+import loggerFactory from '../../logger';
 
-const logger = getLogger(__filename);
+const logger = loggerFactory.create(__filename);
 
 export {
   ACTION,

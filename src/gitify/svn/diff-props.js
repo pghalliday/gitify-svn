@@ -1,9 +1,7 @@
 import _ from 'lodash';
-import {
-  getLogger,
-} from '../../logger';
+import loggerFactory from '../../logger';
 
-const logger = getLogger(__filename);
+const logger = loggerFactory.create(__filename);
 
 const STATE_GET_PATH = {
   'Index: ': (path, state) => {

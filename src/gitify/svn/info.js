@@ -9,11 +9,9 @@ import {
   schemaSingleEntryList,
   schemaValue,
 } from './lib/shared';
-import {
-  getLogger,
-} from '../../logger';
+import loggerFactory from '../../logger';
 
-const logger = getLogger(__filename);
+const logger = loggerFactory.create(__filename);
 
 const parser = new Parser();
 

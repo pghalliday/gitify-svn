@@ -10,12 +10,11 @@ global.expect = chai.expect;
 global.sinon = sinon;
 
 // override the logger
-import logger from '../../src/logger';
-logger.initFileLogger = () => {};
-logger.getLogger = () => ({
+import loggerFactory from '../../src/logger';
+sinon.stub(loggerFactory, 'init');
+sinon.stub(loggerFactory, 'create').returns({
   error: () => {},
   warn: () => {},
   info: () => {},
   debug: () => {},
 });
-logger.setLogLevel = () => {};

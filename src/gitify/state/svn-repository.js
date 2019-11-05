@@ -9,13 +9,11 @@ import {
   exportObject,
   importObject,
 } from './lib/utils';
-import {
-  getLogger,
-} from '../../logger';
+import loggerFactory from '../../logger';
 import prompt from '../prompt';
 import svn from '../svn';
 
-const logger = getLogger(__filename);
+const logger = loggerFactory.create(__filename);
 
 export default function svnRepositoryFactory({
   Project,

@@ -9,16 +9,14 @@ import {
   PROMPT_REPOSITORY_URL,
   PROMPT_REPOSITORY_NAME,
 } from '../../constants';
-import {
-  getLogger,
-} from '../../logger';
+import loggerFactory from '../../logger';
 import prompt from '../prompt';
 import stateFile from './state-file';
 import repositoriesDirectory from './repositories-directory';
 
-const logger = getLogger(__filename);
+const logger = loggerFactory.create(__filename);
 
-export default function stateFactory({
+export function stateFactory({
   SvnRepository,
 }) {
   return class State {
@@ -109,3 +107,20 @@ function compareDates(revision1, revision2) {
   if (!revision2) return revision1;
   return revision1.date < revision2.date ? revision1 : revision2;
 }
+
+
+// initialise the state singleton
+import svnRepositoryFactory from './svn-repository';
+import projectFactory from './project';
+import Git from '../git';
+const Project = projectFactory({
+  Git,
+});
+const SvnRepository = svnRepositoryFactory({
+  Project,
+});
+const State = stateFactory({
+  SvnRepository,
+});
+const state = new State();
+export default state;

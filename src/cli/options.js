@@ -5,12 +5,9 @@ import {
   DEFAULT_SVN_BINARY,
   DEFAULT_LOG_LEVEL,
 } from '../constants';
-import {
-  getLogger,
-  setLogLevel,
-} from '../logger';
+import loggerFactory from '../logger';
 
-const logger = getLogger(__filename);
+const logger = loggerFactory.create(__filename);
 
 const cliOpts = cliclopts([{
   name: 'repository',
@@ -60,7 +57,7 @@ export function parse(argv) {
   const parsed = minimist(argv, Object.assign(cliOpts.options(), {
     stopEarly: true,
   }));
-  setLogLevel(parsed['log-level']);
+  loggerFactory.level = parsed['log-level'];
   logger.debug(JSON.stringify(parsed, null, 2));
   if (parsed.version) {
     return {
