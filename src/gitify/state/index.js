@@ -72,6 +72,7 @@ export function stateFactory({
           url,
         });
         this.svnRepositories[svnRepository.uuid] = svnRepository;
+        await stateFile.write(this._export());
       }
       return svnRepository;
     }

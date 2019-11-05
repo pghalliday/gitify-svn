@@ -27,6 +27,26 @@ export const DIRECTORY_INFO = `
 </entry>
 </info>
 `;
+export const DIRECTORY_INFO_WITHOUT_AUTHOR = `
+<?xml version="1.0" encoding="UTF-8"?>
+<info>
+<entry
+   revision="100"
+   kind="dir"
+   path="trunk">
+<url>http://path/to/repos/trunk</url>
+<relative-url>^/trunk</relative-url>
+<repository>
+<root>http://path/to/repos</root>
+<uuid>UUID-UUID-UUID</uuid>
+</repository>
+<commit
+   revision="50">
+<date>2004-06-25T15:50:25.449194Z</date>
+</commit>
+</entry>
+</info>
+`;
 export const PARSED_DIRECTORY_INFO = {
   path: 'trunk',
   url: 'http://path/to/repos/trunk',
@@ -36,6 +56,17 @@ export const PARSED_DIRECTORY_INFO = {
   revision: 100,
   nodeKind: NODE_KIND.DIRECTORY,
   lastChangedAuthor: 'developer@company.com',
+  lastChangedRev: 50,
+  lastChangedDate: new Date('2004-06-25T15:50:25.449Z'),
+};
+export const PARSED_DIRECTORY_INFO_WITHOUT_AUTHOR = {
+  path: 'trunk',
+  url: 'http://path/to/repos/trunk',
+  relativeUrl: '^/trunk',
+  repositoryRoot: 'http://path/to/repos',
+  repositoryUuid: 'UUID-UUID-UUID',
+  revision: 100,
+  nodeKind: NODE_KIND.DIRECTORY,
   lastChangedRev: 50,
   lastChangedDate: new Date('2004-06-25T15:50:25.449Z'),
 };

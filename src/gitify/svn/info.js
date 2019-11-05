@@ -5,6 +5,7 @@ import {
   nodeKindTranslator,
   dateTranslator,
   intTranslator,
+  schemaTest,
   schemaMap,
   schemaSingleEntryList,
   schemaValue,
@@ -74,11 +75,19 @@ const date = schemaSingleEntryList(schemaValue({
   translator: dateTranslator,
 }));
 
-const commit = schemaSingleEntryList(schemaMap({
-  '$': commitAttributes,
-  author,
-  date,
-}));
+const commit = schemaSingleEntryList(schemaTest([{
+  test: (data) => data.author,
+  schema: schemaMap({
+    '$': commitAttributes,
+    author,
+    date,
+  }),
+}, {
+  schema: schemaMap({
+    '$': commitAttributes,
+    date,
+  }),
+}]));
 
 const entry = schemaSingleEntryList(schemaMap({
   '$': entryAttributes,
@@ -99,6 +108,7 @@ const root = schemaMap({
 export async function parse(xml) {
   logger.debug(xml);
   const parsed = await parser.parseStringPromise(xml);
+  logger.debug(parsed);
   const info = root(parsed);
   return info;
 }

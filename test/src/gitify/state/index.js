@@ -185,6 +185,10 @@ describe('src', () => {
             });
           });
 
+          it('should write the state file', () => {
+            stateFile.write.should.have.been.calledWith(exported);
+          });
+
           describe('then getNext', () => {
             let next;
 

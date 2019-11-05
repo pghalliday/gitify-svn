@@ -3,7 +3,9 @@ import {
 } from '../../../../src/gitify/svn/info';
 import {
   DIRECTORY_INFO,
+  DIRECTORY_INFO_WITHOUT_AUTHOR,
   PARSED_DIRECTORY_INFO,
+  PARSED_DIRECTORY_INFO_WITHOUT_AUTHOR,
   UNEXPECTED_INFO_KEYS,
   UNEXPECTED_INFO_KEY,
   UNKNOWN_INFO,
@@ -14,8 +16,13 @@ describe('src', () => {
     describe('svn', () => {
       describe('info', () => {
         describe('parse', () => {
-          it('should parse valid info output for directory', async () => {
+          it('should parse valid info with commit author', async () => {
             (await parse(DIRECTORY_INFO)).should.eql(PARSED_DIRECTORY_INFO);
+          });
+
+          it('should parse valid info without commit author', async () => {
+            (await parse(DIRECTORY_INFO_WITHOUT_AUTHOR))
+                .should.eql(PARSED_DIRECTORY_INFO_WITHOUT_AUTHOR);
           });
 
           it('should error on unexpected info key count', async () => {

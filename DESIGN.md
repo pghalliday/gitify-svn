@@ -23,6 +23,7 @@ tags aliases: [tags, Tags, tag, Tag]
   - Check recursively if there are changes to submodules and apply those first
 - Resolve changes to externals last?
 - Resolve merges first?
+- Add new repositories (from externals) first?
 
 For each change in log
 - Is it a svn:mergeinfo
