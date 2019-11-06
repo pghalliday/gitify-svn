@@ -11,7 +11,7 @@ global.sinon = sinon;
 
 // override the logger
 import loggerFactory from '../../src/logger';
-sinon.stub(loggerFactory, 'init');
+sinon.stub(loggerFactory, 'logToFile');
 sinon.stub(loggerFactory, 'create').returns({
   error: () => {},
   warn: () => {},

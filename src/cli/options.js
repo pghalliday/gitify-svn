@@ -1,10 +1,14 @@
 import minimist from 'minimist';
 import cliclopts from 'cliclopts';
 import {
+  isUndefined,
+} from 'lodash';
+import {
   USAGE_TEXT,
   DEFAULT_GIT_BINARY,
   DEFAULT_SVN_BINARY,
   DEFAULT_LOG_LEVEL,
+  DEFAULT_DIRECTORY,
 } from '../constants';
 import loggerFactory from '../logger';
 
@@ -23,10 +27,6 @@ const cliOpts = cliclopts([{
   name: 'password',
   abbr: 'p',
   help: 'The SVN password',
-}, {
-  name: 'working-dir',
-  abbr: 'w',
-  help: 'The working directory',
 }, {
   name: 'git-binary',
   abbr: 'g',
@@ -55,6 +55,32 @@ const cliOpts = cliclopts([{
   default: DEFAULT_LOG_LEVEL,
 }]);
 
+function checkSingles(parsed, singles) {
+  singles.forEach((single) => {
+    if (Array.isArray(parsed[single])) {
+      throw new Error(`${single} should only be specified once`);
+    }
+  });
+}
+
+function checkDirectory(parsed) {
+  const directories = parsed._;
+  if (directories.length > 1) {
+    throw new Error('Only one directory should be specified');
+  }
+  return directories[0] || DEFAULT_DIRECTORY;
+}
+
+function checkMultiple(value) {
+  if (Array.isArray(value)) {
+    return value;
+  }
+  if (isUndefined(value)) {
+    return [];
+  }
+  return [value];
+}
+
 export function help() {
   return USAGE_TEXT + cliOpts.usage() + '\n';
 }
@@ -63,6 +89,9 @@ export function parse(argv) {
   const parsed = minimist(argv, Object.assign(cliOpts.options(), {
     stopEarly: true,
   }));
+  checkSingles(parsed, [
+    'log-level',
+  ]);
   loggerFactory.level = parsed['log-level'];
   logger.debug(JSON.stringify(parsed, null, 2));
   if (parsed.version) {
@@ -75,5 +104,20 @@ export function parse(argv) {
       help: true,
     };
   }
-  return parsed;
+  checkSingles(parsed, [
+    'username',
+    'password',
+    'git-binary',
+    'svn-binary',
+  ]);
+  const directory = checkDirectory(parsed);
+  const repositories = checkMultiple(parsed.repository);
+  return {
+    username: parsed.username,
+    password: parsed.password,
+    gitBinary: parsed['git-binary'],
+    svnBinary: parsed['svn-binary'],
+    repositories,
+    directory,
+  };
 };

@@ -1,5 +1,9 @@
 import loggerFactory from '../../logger';
 import git from '../git';
+import prompt from '../prompt';
+import {
+  promptProjectRemote,
+} from '../../constants';
 
 const logger = loggerFactory.create(__filename);
 
@@ -7,34 +11,38 @@ export function projectFactory({
 }) {
   return class Project {
     static async create({
-      url,
-      uuid,
+      svnUrl,
+      parent,
+      path,
     }) {
       // eslint-disable-next-line max-len
-      logger.debug(`Creating a new project: ${url}: ${uuid}`);
+      logger.debug(`Creating a new project for SVN url: ${svnUrl}`);
       const project = new Project({
-        uuid,
+        parent,
+        path,
       });
-      await project._init(url);
+      await project._init(svnUrl);
       return project;
     }
 
     constructor({
-      uuid,
-      url,
+      parent,
+      path,
       exported,
     }) {
       if (exported) {
         this._import(exported);
       } else {
-        this.uuid = uuid;
+        this.parent = parent;
+        this.path = path;
       }
     }
 
     _import(exported) {
       logger.debug(`Importing project`);
       logger.debug(exported);
-      this.uuid = exported.uuid;
+      this.parent = exported.parent;
+      this.path = exported.path;
       this.remote = exported.remote;
       this.commit = exported.commit;
     }
@@ -42,7 +50,8 @@ export function projectFactory({
     export() {
       logger.debug(`Exporting project`);
       const exported = {
-        uuid: this.uuid,
+        parent: this.parent,
+        path: this.path,
         remote: this.remote,
         commit: this.commit,
       };
@@ -50,13 +59,13 @@ export function projectFactory({
       return exported;
     }
 
-    async _init(url) {
-      const response = await git.create({
-        uuid: this.uuid,
-        url,
+    async _init(svnUrl) {
+      this.remote = await prompt.input(promptProjectRemote(svnUrl));
+      this.commit = await git.addSubmodule({
+        remote: this.remote,
+        parent: this.parent,
+        path: this.path,
       });
-      this.remote = response.remote;
-      this.commit = response.commit;
     }
   };
 }

@@ -1,5 +1,9 @@
 import {
+  join,
+} from 'path';
+import {
   promptConfirmRoot,
+  REPOSITORIES_DIR,
 } from '../../constants';
 import {
   exportObject,
@@ -7,6 +11,7 @@ import {
 } from './lib/utils';
 import loggerFactory from '../../logger';
 import prompt from '../prompt';
+import workingDirectory from '../working-directory';
 import svn from '../svn';
 import Project from './project';
 
@@ -81,8 +86,9 @@ export function svnRepositoryFactory({
       }
       this.uuid = info.repositoryUuid;
       this.project = await Project.create({
-        uuid: this.uuid,
-        url: this.url,
+        svnUrl: this.url,
+        parent: workingDirectory.path,
+        path: join(REPOSITORIES_DIR, this.uuid),
       });
     }
 

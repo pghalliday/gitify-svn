@@ -3,9 +3,14 @@ import {
 } from '../../../../src/gitify/state/svn-repository';
 import Project from '../../../../src/gitify/state/project';
 import prompt from '../../../../src/gitify/prompt';
+import workingDirectory from '../../../../src/gitify/working-directory';
 import svn from '../../../../src/gitify/svn';
 import {
+  join,
+} from 'path';
+import {
   promptConfirmRoot,
+  REPOSITORIES_DIR,
 } from '../../../../src/constants';
 import {
   createInstance,
@@ -38,6 +43,7 @@ const exported = {
   last,
   project: exportedProject,
 };
+const workingDir = 'workingDir';
 
 describe('src', () => {
   describe('gitify', () => {
@@ -51,6 +57,7 @@ describe('src', () => {
         let SvnRepository;
 
         beforeEach(() => {
+          workingDirectory.path = workingDir,
           confirm = sinon.stub(prompt, 'confirm');
           revisionMethod = sinon.stub(svn, 'revision').callsFake(
               (params) => Promise.resolve(params)
@@ -83,8 +90,9 @@ describe('src', () => {
                 path: '',
               });
               checkCreated(FakeProject, {
-                uuid: uuid,
-                url: url,
+                svnUrl: url,
+                parent: workingDir,
+                path: join(REPOSITORIES_DIR, uuid),
               });
               svnRepository.url.should.eql(url);
               svnRepository.uuid.should.eql(uuid);
@@ -109,8 +117,9 @@ describe('src', () => {
                     true,
                 );
                 checkCreated(FakeProject, {
-                  uuid: uuid,
-                  url: url,
+                  svnUrl: url,
+                  parent: workingDir,
+                  path: join(REPOSITORIES_DIR, uuid),
                 });
                 svnRepository.url.should.eql(url);
                 svnRepository.uuid.should.eql(uuid);

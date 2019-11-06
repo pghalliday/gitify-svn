@@ -1,6 +1,7 @@
 import {
   resolve,
   dirname,
+  basename,
 } from 'path';
 import _ from 'lodash';
 import fs from 'fs';
@@ -173,6 +174,12 @@ export class FsMock {
     });
   }
 
+  getChildren(parent) {
+    return Object.keys(this.paths).filter(
+        (path) => dirname(path) === resolve(parent)
+    );
+  }
+
   getEntry(path) {
     return this.paths[resolve(path)];
   }
@@ -302,5 +309,21 @@ export class FsMock {
       );
     };
     return new WriteStream(path, this.paths);
+  }
+
+  readdir(path, opts, cb) {
+    if (typeof opts === 'function') cb = opts;
+    setImmediate(() => {
+      const entry = this.paths[resolve(path)];
+      if (entry) {
+        if (entry.type !== FS_DIRECTORY) {
+          cb(notDirectoryError(path, 'scandir'));
+        } else {
+          cb(null, this.getChildren(path).map((child) => basename(child)));
+        }
+      } else {
+        cb(noSuchFileError(path, 'scandir'));
+      }
+    });
   }
 }

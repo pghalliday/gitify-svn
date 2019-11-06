@@ -1,12 +1,10 @@
 import path from 'path';
-import workingDirectory from './gitify/working-directory';
 import {
   createLogger,
   transports,
   format,
 } from 'winston';
 import {
-  LOG_FILE,
   DEFAULT_LOG_LEVEL,
 } from './constants';
 
@@ -60,9 +58,9 @@ export class LoggerFactory {
     });
   }
 
-  init() {
+  logToFile(logFile) {
     this.logger.add(new transports.File({
-      filename: path.join(workingDirectory.path, LOG_FILE),
+      filename: path.join(logFile),
       format: format.combine(
           format.timestamp(),
           format.json(),

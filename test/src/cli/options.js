@@ -2,21 +2,26 @@ import {
   help,
   parse,
 } from '../../../src/cli/options';
-import _ from 'lodash';
+import loggerFactory from '../../../src/logger';
+import {
+  escapeRegExp,
+  forEach,
+} from 'lodash';
 import {
   USAGE_TEXT,
   DEFAULT_SVN_BINARY,
   DEFAULT_GIT_BINARY,
   DEFAULT_LOG_LEVEL,
+  DEFAULT_DIRECTORY,
 } from '../../../src/constants';
 
 const repository = 'repository';
 const username = 'username';
 const password = 'password';
-const workingDir = 'workingDir';
 const svnBinary = 'svnBinary';
 const gitBinary = 'gitBinary';
 const logLevel = 'logLevel';
+const directory = 'directory';
 
 const fullVersionOption = [
   '--version',
@@ -48,14 +53,13 @@ const shortOptions = [
   username,
   '-p',
   password,
-  '-w',
-  workingDir,
   '-g',
   gitBinary,
   '-s',
   svnBinary,
   '-l',
   logLevel,
+  directory,
 ];
 
 const fullOptions = [
@@ -65,15 +69,31 @@ const fullOptions = [
   username,
   '--password',
   password,
-  '--working-dir',
-  workingDir,
   '--git-binary',
   gitBinary,
   '--svn-binary',
   svnBinary,
   '--log-level',
   logLevel,
+  directory,
 ];
+
+const tooManyDirectories = [
+  directory,
+  directory,
+];
+
+const multipleOptions = {
+  repositories: 'repository',
+};
+
+const singleOptions = {
+  username,
+  password,
+  gitBinary: 'git-binary',
+  svnBinary: 'svn-binary',
+  logLevel: 'log-level',
+};
 
 let options;
 
@@ -83,13 +103,13 @@ describe('src', () => {
       describe('#help', () => {
         it('should return the help message', () => {
           help().should.match(
-              new RegExp('^' + _.escapeRegExp(USAGE_TEXT))
+              new RegExp('^' + escapeRegExp(USAGE_TEXT))
           );
         });
       });
 
       describe('#parse', () => {
-        _.forEach({
+        forEach({
           'with the full version option': fullVersionOption,
           'with the short version option': shortVersionOption,
         }, (value, key) => {
@@ -104,7 +124,7 @@ describe('src', () => {
           });
         });
 
-        _.forEach({
+        forEach({
           'with the full help option': fullHelpOption,
           'with the short help option': shortHelpOption,
           'with the alias help option': aliasHelpOption,
@@ -120,7 +140,7 @@ describe('src', () => {
           });
         });
 
-        _.forEach({
+        forEach({
           'with the full options': fullOptions,
           'with the short options': shortOptions,
         }, (value, key) => {
@@ -130,14 +150,51 @@ describe('src', () => {
             });
 
             it('should set options', () => {
-              options.repository.should.eql(repository);
+              loggerFactory.level.should.eql(logLevel);
+              options.repositories.should.eql([repository]);
               options.username.should.eql(username);
               options.password.should.eql(password);
-              options['working-dir'].should.eql(workingDir);
-              options['git-binary'].should.eql(gitBinary);
-              options['svn-binary'].should.eql(svnBinary);
-              options['log-level'].should.eql(logLevel);
+              options.gitBinary.should.eql(gitBinary);
+              options.svnBinary.should.eql(svnBinary);
+              options.directory.should.eql(directory);
             });
+          });
+        });
+
+        forEach(multipleOptions, (value, key) => {
+          describe(`when ${value} is specified multiple times`, () => {
+            before(() => {
+              options = parse([
+                `--${value}`,
+                'value1',
+                `--${value}`,
+                'value2',
+              ]);
+            });
+
+            it('should return an array', () => {
+              options[key].should.eql(['value1', 'value2']);
+            });
+          });
+        });
+
+        forEach(singleOptions, (value) => {
+          describe(`when ${value} is specified multiple times`, () => {
+            it('should throw an error', () => {
+              expect(() => parse([
+                `--${value}`,
+                'value1',
+                `--${value}`,
+                'value2',
+              ])).to.throw(`${value} should only be specified once`);
+            });
+          });
+        });
+
+        describe('with too many directories', () => {
+          it('should throw an error', () => {
+            expect(() => parse(tooManyDirectories))
+                .to.throw(`Only one directory should be specified`);
           });
         });
 
@@ -147,9 +204,11 @@ describe('src', () => {
           });
 
           it('should set default options', () => {
-            options['git-binary'].should.eql(DEFAULT_GIT_BINARY);
-            options['svn-binary'].should.eql(DEFAULT_SVN_BINARY);
-            options['log-level'].should.eql(DEFAULT_LOG_LEVEL);
+            loggerFactory.level.should.eql(DEFAULT_LOG_LEVEL);
+            options.repositories.should.eql([]);
+            options.gitBinary.should.eql(DEFAULT_GIT_BINARY);
+            options.svnBinary.should.eql(DEFAULT_SVN_BINARY);
+            options.directory.should.eql(DEFAULT_DIRECTORY);
           });
         });
       });
