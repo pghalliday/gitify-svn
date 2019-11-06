@@ -11,6 +11,7 @@ export const DEFAULT_GIT_BINARY = 'git';
 export const DEFAULT_SVN_BINARY = 'svn';
 export const DEFAULT_LOG_LEVEL = 'info';
 export const STATE_FILE = `${APPLICATION_NAME}.json`;
+export const IMPORTED_DESCRIPTOR_FILE = `${APPLICATION_NAME}.json`;
 export const LOG_FILE = 'log.json';
 export const README_FILE = 'README.md';
 export const USAGE_TEXT = `
