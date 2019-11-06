@@ -74,6 +74,7 @@ export function gitFactory({
       ], subOptions);
       await this.binary.exec([
         'push',
+        '--force',
         '--set-upstream',
         'origin',
         'master',
@@ -94,9 +95,7 @@ export function gitFactory({
       return (await this.binary.exec([
         'rev-parse',
         'master',
-      ], {
-        cwd: subOptions,
-      })).trim();
+      ], subOptions)).trim();
     }
   };
 }

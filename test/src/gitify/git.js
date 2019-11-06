@@ -157,6 +157,8 @@ describe('src', () => {
           it('should force push', () => {
             binary.exec.getCall(3).should.have.been.calledWith([
               'push',
+              '--force',
+              '--set-upstream',
               'origin',
               'master',
             ], {
