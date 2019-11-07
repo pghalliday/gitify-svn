@@ -1,27 +1,22 @@
-- name: install subversion
+- name: install subversion server packages
   apt:
-    name: subversion
+    name: [
+      subversion,
+      apache2,
+      libapache2-mod-svn,
+      libsvn-dev,
+      python-passlib,
+    ]
     update_cache: yes
-- name: install apache
-  apt:
-    name: apache2
-    update_cache: yes
-- name: install libapache2-mod-svn
-  apt:
-    name: libapache2-mod-svn
-    update_cache: yes
-- name: install libsvn-dev
-  apt:
-    name: libsvn-dev
-    update_cache: yes
-- name: enable dav apache2 module
+
+- name: enable subversion apache2 modules
   apache2_module:
-    name: dav
+    name: "{{ item }}"
+  with_items:
+    - dav
+    - dav_svn
   notify: restart apache2
-- name: enable dav_svn apache2 module
-  apache2_module:
-    name: dav_svn
-  notify: restart apache2
+
 - name: create svn directory
   file:
     path: /var/lib/svn
@@ -29,10 +24,7 @@
     owner: www-data
     group: www-data
     mode: 0775
-- name: install python passlib
-  apt:
-    name: python-passlib
-    update_cache: yes
+
 - name: create svn user
   htpasswd:
     path: /etc/apache2/dav_svn.passwd
@@ -41,6 +33,7 @@
     owner: root
     group: www-data
     mode: 0640
+
 - name: overwrite dav_svn.conf
   copy:
     src: files/dav_svn.conf

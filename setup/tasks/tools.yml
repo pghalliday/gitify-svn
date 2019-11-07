@@ -3,6 +3,7 @@
     src: files/tools/
     dest: /usr/local/gitify/
     mode: preserve
+
 - name: symlink tools to /usr/local/bin
   file:
     path: /usr/local/bin/{{ item }}
