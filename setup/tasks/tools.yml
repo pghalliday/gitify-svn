@@ -1,7 +1,8 @@
-- name: synchronize tools
+- name: copy tools
   copy:
     src: files/tools/
     dest: /usr/local/gitify/
+    mode: preserve
 - name: add tools to path
   copy:
     content: 'PATH=$PATH:/usr/local/gitify/bin'
