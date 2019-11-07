@@ -1,0 +1,15 @@
+- name: add the nodesource gpg key
+  apt_key:
+    url: https://deb.nodesource.com/gpgkey/nodesource.gpg.key
+- name: add node.js repository
+  apt_repository:
+    repo: deb https://deb.nodesource.com/node_12.x {{ ansible_distribution_release }} main
+    filename: nodesource
+- name: add node.js source repository
+  apt_repository:
+    repo: deb-src https://deb.nodesource.com/node_12.x {{ ansible_distribution_release }} main
+    filename: nodesource
+- name: install node.js
+  apt:
+    name: nodejs
+    update_cache: yes

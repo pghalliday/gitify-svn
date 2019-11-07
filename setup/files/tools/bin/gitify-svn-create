@@ -1,0 +1,14 @@
+#!/bin/bash
+
+set -e
+
+REPO=/var/lib/svn/$1
+
+if [ -e "$REPO" ]; then
+  echo "$REPO already exists"
+else
+  svnadmin create $REPO
+  chown -R www-data:www-data $REPO
+  chmod -R 775 $REPO
+  echo "http://localhost/svn/$1"
+fi

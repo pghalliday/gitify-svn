@@ -1,0 +1,13 @@
+- name: development environment
+  hosts: localhost
+  remote_user: root
+  become: yes
+  become_method: sudo
+  tasks:
+    - import_tasks: tasks/aptitude.yml
+    - import_tasks: tasks/nodejs.yml
+    - import_tasks: tasks/subversion_server.yml
+    - import_tasks: tasks/git_server.yml
+    - import_tasks: tasks/tools.yml
+  handlers:
+    - import_tasks: handlers/subversion_server.yml

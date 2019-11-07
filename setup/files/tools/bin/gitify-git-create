@@ -1,0 +1,13 @@
+#!/bin/bash
+
+set -e
+
+REPO=/srv/git/$1.git
+
+if [ -e "$REPO" ]; then
+	echo "$REPO already exists"
+else
+	git init --bare $REPO
+  chown -R git:git $REPO
+	echo "git@localhost:$REPO"
+fi

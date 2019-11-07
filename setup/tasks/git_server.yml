@@ -1,0 +1,22 @@
+- name: install git
+  apt:
+    name: git
+    update_cache: yes
+- name: install openssh-server
+  apt:
+    name: openssh-server
+    update_cache: yes
+- name: add the git user
+  user:
+    name: git
+- name: add the authorized key
+  authorized_key:
+    user: git
+    key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+- name: create git directory
+  file:
+    path: /srv/git
+    state: directory
+    owner: git
+    group: git
+    mode: 0775

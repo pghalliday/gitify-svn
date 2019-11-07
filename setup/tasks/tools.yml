@@ -1,0 +1,8 @@
+- name: synchronize tools
+  copy:
+    src: files/tools/
+    dest: /usr/local/gitify/
+- name: add tools to path
+  copy:
+    content: 'PATH=$PATH:/usr/local/gitify/bin'
+    dest: /etc/profile.d/gitify.sh
