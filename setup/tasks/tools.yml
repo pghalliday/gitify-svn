@@ -3,7 +3,15 @@
     src: files/tools/
     dest: /usr/local/gitify/
     mode: preserve
-- name: add tools to path
-  copy:
-    content: 'PATH=$PATH:/usr/local/gitify/bin'
-    dest: /etc/profile.d/gitify.sh
+- name: symlink tools to /usr/local/bin
+  file:
+    path: /usr/local/bin/{{ item }}
+    src: /usr/local/gitify/bin/{{ item }}
+    state: link
+  with_items:
+    - gitify-git-create
+    - gitify-git-list
+    - gitify-git-delete
+    - gitify-svn-create
+    - gitify-svn-list
+    - gitify-svn-delete
