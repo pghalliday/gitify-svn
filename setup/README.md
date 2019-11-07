@@ -8,6 +8,14 @@ The following will be installed and configured:
 - Subversion server
 - Git server
 - Gitify tools for creating, listing and deleting repositories
+  - `sudo gitify-git-create <NAME>` - create a Git remote repository
+  - `gitify-git-list` - list the Git remote repositories
+  - `sudo gitify-git-delete <NAME>` - delete a Git remote repository
+  - `sudo gitify-svn-create <NAME>` - create a Subversion repository
+  - `gitify-svn-list` - list the Subversion repositories
+  - `sudo gitify-svn-delete <NAME>` - delete a Subversion repository
+
+## Usage
 
 First install ansible using the provided bash script
 
