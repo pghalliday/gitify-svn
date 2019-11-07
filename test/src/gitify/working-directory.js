@@ -37,8 +37,8 @@ describe('src', () => {
 
       beforeEach(() => {
         sinon.stub(prompt, 'confirm');
-        sinon.stub(git, 'initProject');
-        stubResolves(git.initProject, undefined);
+        sinon.stub(git, 'initRepository');
+        stubResolves(git.initRepository, undefined);
         WorkingDirectory = workingDirectoryFactory({
         });
         workingDirectory = new WorkingDirectory();
@@ -46,7 +46,7 @@ describe('src', () => {
 
       afterEach(() => {
         prompt.confirm.restore();
-        git.initProject.restore();
+        git.initRepository.restore();
       });
 
       describe('init', () => {
@@ -72,7 +72,7 @@ describe('src', () => {
           });
 
           it('should initialise a git repository', () => {
-            git.initProject.should.have.been.calledWith({
+            git.initRepository.should.have.been.calledWith({
               path: workingDir,
             });
           });
@@ -128,6 +128,10 @@ describe('src', () => {
               });
             });
 
+            afterEach(() => {
+              fsMock.restore();
+            });
+
             it('should set the path', () => {
               workingDirectory.path.should.eql(workingDir);
             });
@@ -139,7 +143,7 @@ describe('src', () => {
             });
 
             it('should initialise a git repository', () => {
-              git.initProject.should.have.been.calledWith({
+              git.initRepository.should.have.been.calledWith({
                 path: workingDir,
               });
             });
@@ -147,10 +151,6 @@ describe('src', () => {
             it('should add a README.md', () => {
               fsMock.getEntry(join(workingDir, README_FILE)).data
                   .should.eql(README_TEXT);
-            });
-
-            afterEach(() => {
-              fsMock.restore();
             });
           });
 
@@ -200,7 +200,7 @@ describe('src', () => {
               });
 
               it('should not initialise a git repository', () => {
-                git.initProject.should.not.have.been.called;
+                git.initRepository.should.not.have.been.called;
               });
 
               it('should not change the README.md', () => {

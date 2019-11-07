@@ -11,6 +11,7 @@ import {
 } from '../../../helpers/utils';
 
 const svnUrl = 'svnUrl';
+const revision = 'revision';
 const parent = 'parent';
 const path = 'path';
 const remote = 'remote';
@@ -30,13 +31,13 @@ describe('src', () => {
 
         beforeEach(() => {
           sinon.stub(prompt, 'input');
-          sinon.stub(git, 'addSubmodule');
+          sinon.stub(git, 'newSubmodule');
           Project = projectFactory({
           });
         });
 
         afterEach(() => {
-          git.addSubmodule.restore();
+          git.newSubmodule.restore();
           prompt.input.restore();
         });
 
@@ -45,9 +46,10 @@ describe('src', () => {
 
           beforeEach(async () => {
             stubResolves(prompt.input, remote);
-            stubResolves(git.addSubmodule, commit);
+            stubResolves(git.newSubmodule, commit);
             project = await Project.create({
               svnUrl,
+              revision,
               parent,
               path,
             });
@@ -60,10 +62,14 @@ describe('src', () => {
           });
 
           it('should add the submodule', async () => {
-            git.addSubmodule.should.have.been.calledWith({
+            git.newSubmodule.should.have.been.calledWith({
               remote,
               parent,
               path,
+              importedDescriptor: {
+                svnUrl,
+                revision,
+              },
             });
           });
 

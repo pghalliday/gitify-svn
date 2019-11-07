@@ -1,6 +1,5 @@
 import {
   mapValues,
-  find,
 } from 'lodash';
 import {
   exportObject,
@@ -8,9 +7,11 @@ import {
 } from './lib/utils';
 import {
   PROMPT_REPOSITORY_URL,
+  promptConfirmRoot,
 } from '../../constants';
 import loggerFactory from '../../logger';
 import prompt from '../prompt';
+import svn from '../svn';
 import stateFile from './state-file';
 import repositoriesDirectory from './repositories-directory';
 import SvnRepository from './svn-repository';
@@ -62,16 +63,36 @@ export function stateFactory({
     async addSvnRepository({
       url,
     }) {
-      let svnRepository = find(this.svnRepositories, {url});
+      const info = await svn.info({
+        repository: url,
+        path: '',
+        revision: 0,
+      });
+      const uuid = info.repositoryUuid;
+      // check that the supplied url is the root of the repository
+      if (info.repositoryRoot !== url) {
+        logger.info('It is only possible to convert the repository root');
+        const confirm = await prompt.confirm(
+            promptConfirmRoot(info.repositoryRoot),
+            true,
+        );
+        if (confirm) {
+          url = info.repositoryRoot;
+        } else {
+          throw new Error('Can only convert the root of an SVN repository');
+        }
+      }
+      let svnRepository = this.svnRepositories[uuid];
       if (svnRepository) {
         // eslint-disable-next-line max-len
-        logger.debug(`SVN repository already added: ${url}: ${svnRepository.uuid}`);
+        logger.debug(`SVN repository already added: ${url}: ${uuid}`);
       } else {
         logger.info(`Adding new SVN repository: ${url}`);
         svnRepository = await SvnRepository.create({
           url,
+          uuid: uuid,
         });
-        this.svnRepositories[svnRepository.uuid] = svnRepository;
+        this.svnRepositories[uuid] = svnRepository;
         await stateFile.write(this._export());
       }
       return svnRepository;

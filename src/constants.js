@@ -10,7 +10,7 @@ export const REPOSITORIES_DIR = 'repositories';
 export const DEFAULT_GIT_BINARY = 'git';
 export const DEFAULT_SVN_BINARY = 'svn';
 export const DEFAULT_LOG_LEVEL = 'info';
-export const STATE_FILE = `${APPLICATION_NAME}.json`;
+export const STATE_FILE = 'state.json';
 export const IMPORTED_DESCRIPTOR_FILE = `${APPLICATION_NAME}.json`;
 export const LOG_FILE = 'log.json';
 export const README_FILE = 'README.md';
@@ -32,3 +32,5 @@ export const PROMPT_SVN_USERNAME = 'Enter the SVN username for access to all rep
 export const promptSvnPassword = (username) => `Enter the password for SVN user (${username})`;
 export const promptProjectRemote = (url) => `Enter the git remote URL for ${url}`;
 export const promptConfirmNonEmpty = (path) => `${path} is not an empty directory, are you sure you wish to run ${APPLICATION_NAME} here`;
+export const promptConfirmOverwriteProject = (path) => `${path} will be removed and overwritten if it exists, are you sure you wish to continue`;
+export const promptConfirmForcePush = (remote) => `${remote} will be overwritten with a force push, are you sure you wish to continue`;

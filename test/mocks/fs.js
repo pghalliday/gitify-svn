@@ -149,6 +149,14 @@ const illegalOperationOnDirectoryError = (path, syscall) => new SystemError({
   path,
 });
 
+const directoryNotEmptyError = (path, syscall) => new SystemError({
+  message: `ENOTEMPTY: directory not empty, ${syscall} '${path}'`,
+  errno: -39,
+  code: 'ENOTEMPTY',
+  syscall,
+  path,
+});
+
 export class FsMock {
   constructor(paths) {
     // convert all paths to absolute paths
@@ -204,6 +212,36 @@ export class FsMock {
     });
   }
 
+  lstat(path, opts, cb) {
+    this.stat(path, opts, cb);
+  }
+
+  rmdir(path, opts, cb) {
+    if (typeof opts === 'function') {
+      cb = opts;
+    } else {
+      throw new Error('FsMock: rmdir: options are not supported');
+    }
+    setImmediate(() => {
+      const entry = this.paths[resolve(path)];
+      if (entry) {
+        if (entry.type !== FS_DIRECTORY) {
+          cb(notDirectoryError(path, 'rmdir'));
+        } else {
+          const children = this.getChildren(path);
+          if (children.length > 0) {
+            cb(directoryNotEmptyError(path, 'rmdir'));
+          } else {
+            delete this.paths[resolve(path)];
+            cb(null);
+          }
+        }
+      } else {
+        cb(noSuchFileError(path, 'rmdir'));
+      }
+    });
+  }
+
   mkdir(path, opts, cb) {
     if (typeof opts === 'function') cb = opts;
     setImmediate(() => {
@@ -228,6 +266,22 @@ export class FsMock {
           const err = noSuchFileError(path, 'mkdir');
           cb(err);
         }
+      }
+    });
+  }
+
+  unlink(path, cb) {
+    setImmediate(() => {
+      const entry = this.paths[resolve(path)];
+      if (entry) {
+        if (entry.type === FS_DIRECTORY) {
+          cb(illegalOperationOnDirectoryError(path, 'rmdir'));
+        } else {
+          delete this.paths[resolve(path)];
+          cb(null);
+        }
+      } else {
+        cb(noSuchFileError(path, 'unlink'));
       }
     });
   }

@@ -2,14 +2,12 @@ import {
   svnRepositoryFactory,
 } from '../../../../src/gitify/state/svn-repository';
 import Project from '../../../../src/gitify/state/project';
-import prompt from '../../../../src/gitify/prompt';
 import workingDirectory from '../../../../src/gitify/working-directory';
 import svn from '../../../../src/gitify/svn';
 import {
   join,
 } from 'path';
 import {
-  promptConfirmRoot,
   REPOSITORIES_DIR,
 } from '../../../../src/constants';
 import {
@@ -17,16 +15,10 @@ import {
   createConstructor,
   checkConstructed,
   checkCreated,
-  stubResolves,
 } from '../../../helpers/utils';
 
 const url = 'url';
-const incorrectUrl = 'incorrectUrl';
 const uuid = 'uuid';
-const info = {
-  repositoryRoot: url,
-  repositoryUuid: uuid,
-};
 const last = 0;
 const revision1 = {
   repository: url,
@@ -49,20 +41,16 @@ describe('src', () => {
   describe('gitify', () => {
     describe('state', () => {
       describe('SvnRepository', () => {
-        let confirm;
         let revisionMethod;
-        let infoMethod;
         let project;
         let FakeProject;
         let SvnRepository;
 
         beforeEach(() => {
           workingDirectory.path = workingDir,
-          confirm = sinon.stub(prompt, 'confirm');
           revisionMethod = sinon.stub(svn, 'revision').callsFake(
               (params) => Promise.resolve(params)
           );
-          infoMethod = sinon.stub(svn, 'info').resolves(info);
           project = createInstance(Project, {
             export: sinon.stub().returns(exportedProject),
           });
@@ -73,75 +61,25 @@ describe('src', () => {
         });
 
         afterEach(() => {
-          confirm.restore();
           revisionMethod.restore();
-          infoMethod.restore();
         });
 
         describe('create', () => {
-          describe('when the url is the correct root url', () => {
-            it('should construct a new SvnRepository and init it', async () => {
-              const svnRepository = await SvnRepository.create({
-                url,
-              });
-              infoMethod.should.have.been.calledWith({
-                repository: url,
-                revision: 0,
-                path: '',
-              });
-              checkCreated(FakeProject, {
-                svnUrl: url,
-                parent: workingDir,
-                path: join(REPOSITORIES_DIR, uuid),
-              });
-              svnRepository.url.should.eql(url);
-              svnRepository.uuid.should.eql(uuid);
-              svnRepository.last.should.eql(0);
-              svnRepository.project.should.eql(project);
+          it('should construct a new SvnRepository and init it', async () => {
+            const svnRepository = await SvnRepository.create({
+              url,
+              uuid,
             });
-          });
-
-          describe('when the url is not the root url', () => {
-            // eslint-disable-next-line max-len
-            describe('and the user chooses to switch to the correct root', () => {
-              beforeEach(() => {
-                stubResolves(confirm, true);
-              });
-
-              it('should switch to the correct root url', async () => {
-                const svnRepository = await SvnRepository.create({
-                  url: incorrectUrl,
-                });
-                confirm.should.have.been.calledWith(
-                    promptConfirmRoot(url),
-                    true,
-                );
-                checkCreated(FakeProject, {
-                  svnUrl: url,
-                  parent: workingDir,
-                  path: join(REPOSITORIES_DIR, uuid),
-                });
-                svnRepository.url.should.eql(url);
-                svnRepository.uuid.should.eql(uuid);
-                svnRepository.last.should.eql(0);
-                svnRepository.project.should.eql(project);
-              });
+            checkCreated(FakeProject, {
+              svnUrl: url,
+              revision: 0,
+              parent: workingDir,
+              path: join(REPOSITORIES_DIR, uuid),
             });
-
-            // eslint-disable-next-line max-len
-            describe('and the user chooses not to switch to the correct root', () => {
-              beforeEach(() => {
-                stubResolves(confirm, false);
-              });
-
-              it('should throw an error', async () => {
-                await SvnRepository.create({
-                  url: incorrectUrl,
-                }).should.be.rejectedWith(
-                    'Can only convert the root of an SVN repository'
-                );
-              });
-            });
+            svnRepository.url.should.eql(url);
+            svnRepository.uuid.should.eql(uuid);
+            svnRepository.last.should.eql(0);
+            svnRepository.project.should.eql(project);
           });
         });
 

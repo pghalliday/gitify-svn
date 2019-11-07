@@ -2,7 +2,6 @@ import {
   join,
 } from 'path';
 import {
-  promptConfirmRoot,
   REPOSITORIES_DIR,
 } from '../../constants';
 import {
@@ -10,7 +9,6 @@ import {
   importObject,
 } from './lib/utils';
 import loggerFactory from '../../logger';
-import prompt from '../prompt';
 import workingDirectory from '../working-directory';
 import svn from '../svn';
 import Project from './project';
@@ -23,10 +21,12 @@ export function svnRepositoryFactory({
   return class SvnRepository {
     static async create({
       url,
+      uuid,
     }) {
-      logger.debug(`Creating SvnRepository: ${url}`);
+      logger.debug(`Creating SvnRepository: ${url}: ${uuid}`);
       const svnRepository = new SvnRepository({
         url,
+        uuid,
       });
       await svnRepository._init();
       return svnRepository;
@@ -34,12 +34,14 @@ export function svnRepositoryFactory({
 
     constructor({
       url,
+      uuid,
       exported,
     }) {
       if (exported) {
         this._import(exported);
       } else {
         this.url = url;
+        this.uuid = uuid;
       }
     }
 
@@ -66,27 +68,9 @@ export function svnRepositoryFactory({
 
     async _init() {
       this.last = 0;
-      const info = await svn.info({
-        repository: this.url,
-        path: '',
-        revision: 0,
-      });
-      // check that the supplied url is the root of the repository
-      if (info.repositoryRoot !== this.url) {
-        logger.info('It is only possible to convert the repository root');
-        const confirm = await prompt.confirm(
-            promptConfirmRoot(info.repositoryRoot),
-            true,
-        );
-        if (confirm) {
-          this.url = info.repositoryRoot;
-        } else {
-          throw new Error('Can only convert the root of an SVN repository');
-        }
-      }
-      this.uuid = info.repositoryUuid;
       this.project = await Project.create({
         svnUrl: this.url,
+        revision: this.last,
         parent: workingDirectory.path,
         path: join(REPOSITORIES_DIR, this.uuid),
       });

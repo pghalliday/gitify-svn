@@ -10,9 +10,12 @@ import {
 import {
   join,
 } from 'path';
+import prompt from './prompt';
 import {
   IMPORTED_DESCRIPTOR_FILE,
   INITIAL_COMMIT_MESSAGE,
+  promptConfirmOverwriteProject,
+  promptConfirmForcePush,
 } from '../constants';
 
 export function gitFactory({
@@ -28,7 +31,7 @@ export function gitFactory({
       });
     }
 
-    async initProject({
+    async initRepository({
       path,
     }) {
       await this.binary.exec([
@@ -38,25 +41,43 @@ export function gitFactory({
       });
     }
 
-    async addSubmodule({
+    async pushNewRepository({
       remote,
       parent,
       path,
       importedDescriptor,
     }) {
       const subPath = join(parent, path);
-      const importedDescriptorFile = join(subPath, IMPORTED_DESCRIPTOR_FILE);
+      const confirmOverwite = await prompt.confirm(
+          promptConfirmOverwriteProject(subPath),
+          false,
+      );
+      if (!confirmOverwite) {
+        throw new Error('User cancelled overwrite project');
+      }
+      const confirmForce = await prompt.confirm(
+          promptConfirmForcePush(remote),
+          false,
+      );
+      if (!confirmForce) {
+        throw new Error('User cancelled force push');
+      }
+      await promisify(rimraf)(subPath);
+      const importedDescriptorFile = join(
+          subPath,
+          IMPORTED_DESCRIPTOR_FILE,
+      );
       const subOptions = {
         cwd: subPath,
       };
-      const parentOptions = {
-        cwd: parent,
-      };
       await promisify(mkdirp)(subPath);
-      await this.initProject({
+      await this.initRepository({
         path: subPath,
       });
-      await promisify(writeFile)(importedDescriptorFile, importedDescriptor);
+      await promisify(writeFile)(
+          importedDescriptorFile,
+          JSON.stringify(importedDescriptor, null, 2),
+      );
       await this.binary.exec([
         'add',
         IMPORTED_DESCRIPTOR_FILE,
@@ -79,6 +100,28 @@ export function gitFactory({
         'origin',
         'master',
       ], subOptions);
+      return (await this.binary.exec([
+        'rev-parse',
+        'master',
+      ], subOptions)).trim();
+    }
+
+    async newSubmodule({
+      remote,
+      parent,
+      path,
+      importedDescriptor,
+    }) {
+      const commit = await this.pushNewRepository({
+        remote,
+        parent,
+        path,
+        importedDescriptor,
+      });
+      const subPath = join(parent, path);
+      const parentOptions = {
+        cwd: parent,
+      };
       await promisify(rimraf)(subPath);
       await this.binary.exec([
         'submodule',
@@ -92,10 +135,7 @@ export function gitFactory({
         '--init',
         '--recursive',
       ], parentOptions);
-      return (await this.binary.exec([
-        'rev-parse',
-        'master',
-      ], subOptions)).trim();
+      return commit;
     }
   };
 }

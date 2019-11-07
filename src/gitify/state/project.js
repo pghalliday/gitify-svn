@@ -12,6 +12,7 @@ export function projectFactory({
   return class Project {
     static async create({
       svnUrl,
+      revision,
       parent,
       path,
     }) {
@@ -21,7 +22,10 @@ export function projectFactory({
         parent,
         path,
       });
-      await project._init(svnUrl);
+      await project._init({
+        svnUrl,
+        revision,
+      });
       return project;
     }
 
@@ -59,12 +63,19 @@ export function projectFactory({
       return exported;
     }
 
-    async _init(svnUrl) {
+    async _init({
+      svnUrl,
+      revision,
+    }) {
       this.remote = await prompt.input(promptProjectRemote(svnUrl));
-      this.commit = await git.addSubmodule({
+      this.commit = await git.newSubmodule({
         remote: this.remote,
         parent: this.parent,
         path: this.path,
+        importedDescriptor: {
+          svnUrl,
+          revision,
+        },
       });
     }
   };

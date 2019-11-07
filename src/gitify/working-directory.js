@@ -56,7 +56,7 @@ export function workingDirectoryFactory({
 
       if (!isGit) {
         logger.debug('initialising git repository');
-        await git.initProject({
+        await git.initRepository({
           path,
         });
       }
