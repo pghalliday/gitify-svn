@@ -8,15 +8,17 @@ The following will be installed and configured:
 - Subversion server
 - Git server
 - Gitify tools for creating, listing and deleting repositories
-  - `sudo gitify-git-create <NAME>` - create a Git remote repository
-  - `gitify-git-list` - list the Git remote repositories
-  - `sudo gitify-git-delete <NAME>` - delete a Git remote repository
-  - `gitify-git-checksum <NAME>` - checksum the checksums for each ref in a Git remote repository (can be used to verify that 2 repositories are identical)
-  - `sudo gitify-svn-create <NAME>` - create a Subversion repository
-  - `gitify-svn-list` - list the Subversion repositories
-  - `sudo gitify-svn-delete <NAME>` - delete a Subversion repository
-  - `gitify-svn-dump <NAME> <FILE>` - dump a Subversion repository to the given file
-  - `sudo gitify-svn-load <NAME> <FILE>` - load a Subversion respository from the given file
+  - Git
+    - `sudo gitify-git-create <NAME>` - create a Git remote repository
+    - `gitify-git-list` - list the Git remote repositories
+    - `sudo gitify-git-delete <NAME>` - delete a Git remote repository
+    - `gitify-git-checksum <NAME>` - checksum the checksums for each ref in a Git remote repository (can be used to verify that 2 repositories are identical)
+  - Subversion
+    - `sudo gitify-svn-create <NAME>` - create a Subversion repository
+    - `gitify-svn-list` - list the Subversion repositories
+    - `sudo gitify-svn-delete <NAME>` - delete a Subversion repository
+    - `gitify-svn-dump <NAME> <FILE>` - dump a Subversion repository to the given file
+    - `sudo gitify-svn-load <NAME> <FILE>` - load a Subversion respository from the given file
 
 ## Usage
 
