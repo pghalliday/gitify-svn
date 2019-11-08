@@ -8,6 +8,7 @@ import {
   DEFAULT_GIT_BINARY,
   DEFAULT_SVN_BINARY,
   DEFAULT_LOG_LEVEL,
+  DEFAULT_USE_PROMPT_FILE,
   DEFAULT_DIRECTORY,
 } from '../constants';
 import loggerFactory from '../logger';
@@ -38,6 +39,18 @@ const cliOpts = cliclopts([{
   help: 'The SVN binary to use',
   default: DEFAULT_SVN_BINARY,
 }, {
+  name: 'use-prompt-file',
+  abbr: 'q',
+  boolean: true,
+  // eslint-disable-next-line max-len
+  help: 'Whether to use the responses in the prompt file (to replay a previous run)',
+  default: DEFAULT_USE_PROMPT_FILE,
+}, {
+  name: 'log-level',
+  abbr: 'l',
+  help: 'Set the log level for the console and log file',
+  default: DEFAULT_LOG_LEVEL,
+}, {
   name: 'help',
   abbr: 'h',
   alias: ['?'],
@@ -48,11 +61,6 @@ const cliOpts = cliclopts([{
   abbr: 'v',
   boolean: true,
   help: 'Show version number',
-}, {
-  name: 'log-level',
-  abbr: 'l',
-  help: 'Set the log level for the console and log file',
-  default: DEFAULT_LOG_LEVEL,
 }]);
 
 function checkSingles(parsed, singles) {
@@ -117,6 +125,7 @@ export function parse(argv) {
     password: parsed.password,
     gitBinary: parsed['git-binary'],
     svnBinary: parsed['svn-binary'],
+    usePromptFile: parsed['use-prompt-file'],
     repositories,
     directory,
   };

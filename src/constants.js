@@ -10,9 +10,11 @@ export const REPOSITORIES_DIR = 'repositories';
 export const DEFAULT_GIT_BINARY = 'git';
 export const DEFAULT_SVN_BINARY = 'svn';
 export const DEFAULT_LOG_LEVEL = 'info';
+export const DEFAULT_USE_PROMPT_FILE = false;
 export const STATE_FILE = 'state.json';
 export const IMPORTED_DESCRIPTOR_FILE = `${APPLICATION_NAME}.json`;
 export const LOG_FILE = 'log.json';
+export const PROMPT_FILE = 'prompts.json';
 export const README_FILE = 'README.md';
 export const USAGE_TEXT = `
 Usage: ${APPLICATION_NAME} [options] [<directory>] 

@@ -1,4 +1,5 @@
 import workingDirectory from '../working-directory';
+import promptFile from '../prompt-file';
 import {
   STATE_FILE,
 } from '../../constants';
@@ -34,6 +35,7 @@ export class StateFile {
         this.path,
         JSON.stringify(exported, null, 2),
     );
+    await promptFile.flush();
   }
 }
 

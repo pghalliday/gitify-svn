@@ -287,15 +287,20 @@ export class FsMock {
   }
 
   writeFile(path, data, opts, cb) {
+    let append = false;
     if (typeof data !== 'string') {
       throw new Error('FsMock: writeFile only supports strings at this time');
     }
     if (typeof opts === 'function') {
       cb = opts;
     } else {
-      throw new Error(
-          `FsMock: writeFile options are not supported: ${opts}`
-      );
+      if (JSON.stringify(opts) !== JSON.stringify({flag: 'a'})) {
+        throw new Error(
+            `FsMock: writeFile options only support flag 'a': ${opts}`
+        );
+      } else {
+        append = true;
+      }
     }
     setImmediate(() => {
       const absPath = resolve(path);
@@ -305,8 +310,12 @@ export class FsMock {
           const err = illegalOperationOnDirectoryError(path, 'open');
           cb(err);
         } else if (entry.type === FS_FILE) {
-          // only support truncating for now (flag w)
-          entry.data = data;
+          // only support truncating and append for now (flag w or a)
+          if (append) {
+            entry.data += data;
+          } else {
+            entry.data = data;
+          }
           cb(null);
         }
       } else {

@@ -13,6 +13,7 @@ import {
   DEFAULT_GIT_BINARY,
   DEFAULT_LOG_LEVEL,
   DEFAULT_DIRECTORY,
+  DEFAULT_USE_PROMPT_FILE,
 } from '../../../src/constants';
 
 const repository = 'repository';
@@ -21,6 +22,7 @@ const password = 'password';
 const svnBinary = 'svnBinary';
 const gitBinary = 'gitBinary';
 const logLevel = 'logLevel';
+const usePromptFile = !DEFAULT_USE_PROMPT_FILE;
 const directory = 'directory';
 
 const fullVersionOption = [
@@ -59,6 +61,7 @@ const shortOptions = [
   svnBinary,
   '-l',
   logLevel,
+  '-q',
   directory,
 ];
 
@@ -75,6 +78,7 @@ const fullOptions = [
   svnBinary,
   '--log-level',
   logLevel,
+  '--use-prompt-file',
   directory,
 ];
 
@@ -156,6 +160,7 @@ describe('src', () => {
               options.password.should.eql(password);
               options.gitBinary.should.eql(gitBinary);
               options.svnBinary.should.eql(svnBinary);
+              options.usePromptFile.should.eql(usePromptFile);
               options.directory.should.eql(directory);
             });
           });
@@ -208,6 +213,7 @@ describe('src', () => {
             options.repositories.should.eql([]);
             options.gitBinary.should.eql(DEFAULT_GIT_BINARY);
             options.svnBinary.should.eql(DEFAULT_SVN_BINARY);
+            options.usePromptFile.should.eql(DEFAULT_USE_PROMPT_FILE);
             options.directory.should.eql(DEFAULT_DIRECTORY);
           });
         });
