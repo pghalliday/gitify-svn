@@ -5,11 +5,13 @@ DIR="$(dirname "$(readlink -f "$0")")"
 . $DIR/../lib/check-arg.sh
 . $DIR/../lib/svn-create.sh
 
-USAGE="gitify-svn-create <NAME>"
+USAGE="gitify-svn-load <NAME> <FILE>"
 check_arg "$1" "No name supplied" "$USAGE"
+check_arg "$2" "No file supplied" "$USAGE"
 
 REPO=/var/lib/svn/$1
 
 if create $REPO; then
+  svnadmin load --force-uuid $REPO < $2
   echo "http://localhost/svn/$1"
 fi

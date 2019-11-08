@@ -3,9 +3,11 @@
 set -e
 DIR="$(dirname "$(readlink -f "$0")")"
 . $DIR/../lib/check-arg.sh
-. $DIR/../lib/delete.sh
 
-USAGE="gitify-git-delete <NAME>"
+USAGE="gitify-svn-dump <NAME> <FILE>"
 check_arg "$1" "No name supplied" "$USAGE"
+check_arg "$2" "No file supplied" "$USAGE"
 
-delete /srv/git/$1.git
+REPO=/var/lib/svn/$1
+
+svnadmin dump $REPO > $2

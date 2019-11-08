@@ -14,6 +14,8 @@ The following will be installed and configured:
   - `sudo gitify-svn-create <NAME>` - create a Subversion repository
   - `gitify-svn-list` - list the Subversion repositories
   - `sudo gitify-svn-delete <NAME>` - delete a Subversion repository
+  - `gitify-svn-dump <NAME> <FILE>` - dump a Subversion repository to the given file
+  - `sudo gitify-svn-load <NAME> <FILE>` - load a Subversion respository from the given file
 
 ## Usage
 

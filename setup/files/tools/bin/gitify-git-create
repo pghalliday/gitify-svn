@@ -1,6 +1,11 @@
 #!/bin/bash
 
 set -e
+DIR="$(dirname "$(readlink -f "$0")")"
+. $DIR/../lib/check-arg.sh
+
+USAGE="gitify-git-create <NAME>"
+check_arg "$1" "No name supplied" "$USAGE"
 
 REPO=/srv/git/$1.git
 

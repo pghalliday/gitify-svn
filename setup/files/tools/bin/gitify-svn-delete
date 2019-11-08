@@ -2,6 +2,10 @@
 
 set -e
 DIR="$(dirname "$(readlink -f "$0")")"
+. $DIR/../lib/check-arg.sh
 . $DIR/../lib/delete.sh
+
+USAGE="gitify-svn-delete <NAME>"
+check_arg "$1" "No name supplied" "$USAGE"
 
 delete /var/lib/svn/$1
