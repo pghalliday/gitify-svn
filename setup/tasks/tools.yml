@@ -13,6 +13,7 @@
     - gitify-git-create
     - gitify-git-list
     - gitify-git-delete
+    - gitify-git-checksum
     - gitify-svn-create
     - gitify-svn-list
     - gitify-svn-delete

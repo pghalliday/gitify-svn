@@ -11,6 +11,7 @@ The following will be installed and configured:
   - `sudo gitify-git-create <NAME>` - create a Git remote repository
   - `gitify-git-list` - list the Git remote repositories
   - `sudo gitify-git-delete <NAME>` - delete a Git remote repository
+  - `gitify-git-checksum <NAME>` - checksum the checksums for each ref in a Git remote repository (can be used to verify that 2 repositories are identical)
   - `sudo gitify-svn-create <NAME>` - create a Subversion repository
   - `gitify-svn-list` - list the Subversion repositories
   - `sudo gitify-svn-delete <NAME>` - delete a Subversion repository

@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -e
+DIR="$(dirname "$(readlink -f "$0")")"
+. $DIR/../lib/check-arg.sh
+
+USAGE="gitify-git-checksum <NAME>"
+check_arg "$1" "No name supplied" "$USAGE"
+
+REPO=/srv/git/$1.git
+cd $REPO
+git for-each-ref | sha1sum
