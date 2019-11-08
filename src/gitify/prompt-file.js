@@ -19,20 +19,17 @@ const logger = loggerFactory.create(__filename);
 export class PromptFile {
   constructor() {
     this.prompts = [];
-    this.newPrompts = [];
+    this.index = 0;
   }
 
   async init({
     usePromptFile,
   }) {
     this.path = join(workingDirectory.path, PROMPT_FILE);
-    if (usePromptFile) {
-      const lines = await promisify(readFile)(this.path, 'utf8');
-      this.prompts = lines.split('\n').filter((line) => {
-        return line.trim().length > 0;
-      }).map((line) => {
-        return JSON.parse(line);
-      });
+    const json = await promisify(readFile)(this.path, 'utf8');
+    this.prompts = JSON.parse(json);
+    if (!usePromptFile) {
+      this.index = this.prompts.length;
     }
   }
 
@@ -40,21 +37,21 @@ export class PromptFile {
     callback,
     question,
   }) {
-    let prompt = this.prompts.shift();
+    let prompt = this.prompts[this.index++];
     if (prompt) {
-      // istanbul ignore next
       if (prompt.question !== question) {
         logger.warn(
             // eslint-disable-next-line max-len
-            `Question does not match question from prompt file: ${question}: ${prompt.question}`
+            `Question does not match question from prompt file, updating: ${question}: ${prompt.question}`
         );
+        prompt.question = question;
       }
     } else {
       prompt = {
         question,
         response: await callback(),
       },
-      this.newPrompts.push(prompt);
+      this.prompts.push(prompt);
     }
     return prompt.response;
   }
@@ -63,13 +60,8 @@ export class PromptFile {
     logger.debug('Flushing prompts to prompt file');
     await promisify(writeFile)(
         this.path,
-        this.newPrompts.reduce((lines, prompt) => {
-          return lines + `${JSON.stringify(prompt)}\n`;
-        }, ''), {
-          flag: 'a',
-        },
+        JSON.stringify(this.prompts, null, 2),
     );
-    this.newPrompts = [];
   }
 }
 
