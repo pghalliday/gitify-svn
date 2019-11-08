@@ -16,3 +16,5 @@
     - gitify-svn-create
     - gitify-svn-list
     - gitify-svn-delete
+    - gitify-svn-dump
+    - gitify-svn-load
