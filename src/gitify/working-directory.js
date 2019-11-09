@@ -1,4 +1,5 @@
 import prompt from './prompt';
+import promptFile from './prompt-file';
 import mkdirp from 'mkdirp';
 import {
   writeFile,
@@ -27,10 +28,14 @@ export function workingDirectoryFactory({
   return class WorkingDirectory {
     async init({
       path,
+      usePromptFile,
     }) {
       logger.debug(`working directory set to ${path}`);
       this.path = path;
       await promisify(mkdirp)(path);
+      await promptFile.init({
+        usePromptFile,
+      });
 
       // check for non empty
       const files = await promisify(readdir)(path);

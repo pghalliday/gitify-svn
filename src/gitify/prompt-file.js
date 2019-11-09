@@ -57,7 +57,7 @@ export class PromptFile {
   }
 
   async flush() {
-    logger.debug('Flushing prompts to prompt file');
+    logger.debug(`Flushing prompts to prompt file: ${this.path}`);
     await promisify(writeFile)(
         this.path,
         JSON.stringify(this.prompts, null, 2),

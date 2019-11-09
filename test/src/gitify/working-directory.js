@@ -2,6 +2,7 @@ import {
   workingDirectoryFactory,
 } from '../../../src/gitify/working-directory';
 import prompt from '../../../src/gitify/prompt';
+import promptFile from '../../../src/gitify/prompt-file';
 import git from '../../../src/gitify/git';
 import {
   FsMock,
@@ -27,6 +28,7 @@ import {
 
 const workingDir = 'workingDir';
 const stateFile = 'stateFile';
+const usePromptFile = 'usePromptFile';
 
 describe('src', () => {
   describe('gitify', () => {
@@ -37,6 +39,7 @@ describe('src', () => {
 
       beforeEach(() => {
         sinon.stub(prompt, 'confirm');
+        sinon.stub(promptFile, 'init');
         sinon.stub(git, 'initRepository');
         stubResolves(git.initRepository, undefined);
         WorkingDirectory = workingDirectoryFactory({
@@ -46,6 +49,7 @@ describe('src', () => {
 
       afterEach(() => {
         prompt.confirm.restore();
+        promptFile.init.restore();
         git.initRepository.restore();
       });
 
@@ -56,6 +60,7 @@ describe('src', () => {
             stubResolves(prompt.confirm, []);
             await workingDirectory.init({
               path: workingDir,
+              usePromptFile,
             });
           });
 
@@ -86,6 +91,12 @@ describe('src', () => {
             loggerFactory.logToFile.should.have.been.calledWith(
                 join(workingDir, LOG_FILE)
             );
+          });
+
+          it('should initialise the prompt file', () => {
+            promptFile.init.should.have.been.calledWith({
+              usePromptFile,
+            });
           });
         });
 

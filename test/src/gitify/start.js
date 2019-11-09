@@ -12,6 +12,7 @@ const username = 'username';
 const password = 'password';
 const gitBinary = 'gitBinary';
 const svnBinary = 'svnBinary';
+const usePromptFile = 'usePromptFile';
 
 describe('src', () => {
   describe('gitify', () => {
@@ -28,6 +29,7 @@ describe('src', () => {
           directory,
           gitBinary,
           svnBinary,
+          usePromptFile,
         });
       });
 
@@ -41,6 +43,7 @@ describe('src', () => {
       it('should initialise the working directory', () => {
         workingDirectory.init.should.have.been.calledWith({
           path: directory,
+          usePromptFile,
         });
         // eslint-disable-next-line max-len
         workingDirectory.init.should.have.been.calledBefore(state.init);

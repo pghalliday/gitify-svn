@@ -10,12 +10,14 @@ export async function start({
   directory,
   gitBinary,
   svnBinary,
+  usePromptFile,
 }) {
   git.init({
     binary: gitBinary,
   });
   await workingDirectory.init({
     path: directory,
+    usePromptFile,
   });
   await svn.init({
     username,

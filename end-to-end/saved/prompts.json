@@ -1,0 +1,42 @@
+[
+  {
+    "question": "working is not an empty directory, are you sure you wish to run gitify-svn here",
+    "response": true
+  },
+  {
+    "question": "Enter the git remote URL for http://localhost/svn/test1",
+    "response": "git@localhost:/srv/git/test1.git"
+  },
+  {
+    "question": "working/repositories/1087972d-d0c7-4fca-a6f8-b79b375b1fc0 will be removed and overwritten if it exists, are you sure you wish to continue",
+    "response": true
+  },
+  {
+    "question": "git@localhost:/srv/git/test1.git will be overwritten with a force push, are you sure you wish to continue",
+    "response": true
+  },
+  {
+    "question": "Enter the git remote URL for http://localhost/svn/test2",
+    "response": "git@localhost:/srv/git/test2.git"
+  },
+  {
+    "question": "working/repositories/c54c25e1-0c22-4504-a3fc-694660402c46 will be removed and overwritten if it exists, are you sure you wish to continue",
+    "response": true
+  },
+  {
+    "question": "git@localhost:/srv/git/test2.git will be overwritten with a force push, are you sure you wish to continue",
+    "response": true
+  },
+  {
+    "question": "Enter the git remote URL for http://localhost/svn/test3",
+    "response": "git@localhost:/srv/git/test3.git"
+  },
+  {
+    "question": "working/repositories/3d824974-44e3-4224-955b-6ce73d176106 will be removed and overwritten if it exists, are you sure you wish to continue",
+    "response": true
+  },
+  {
+    "question": "git@localhost:/srv/git/test3.git will be overwritten with a force push, are you sure you wish to continue",
+    "response": true
+  }
+]
