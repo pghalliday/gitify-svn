@@ -8,6 +8,8 @@ import {
   INITIAL_COMMIT_MESSAGE,
   promptConfirmOverwriteProject,
   promptConfirmForcePush,
+  DEFAULT_NAME,
+  DEFAULT_EMAIL,
 } from '../../../src/constants';
 import {
   createInstance,
@@ -27,11 +29,27 @@ import {
 const bin = 'bin';
 const parent = 'parent';
 const path = 'path';
+const name = 'name';
+const email = 'email';
+const date = 'date';
 const remote = 'remote';
 const commit = 'commit';
 const importedDescriptor = {
   data: 'data',
 };
+const env = ({
+  name = DEFAULT_NAME,
+  email = DEFAULT_EMAIL,
+  date,
+}) => ({
+  ...process.env,
+  GIT_COMMITTER_NAME: name,
+  GIT_COMMITTER_EMAIL: email,
+  GIT_COMMITTER_DATE: date,
+  GIT_AUTHOR_NAME: name,
+  GIT_AUTHOR_EMAIL: email,
+  GIT_AUTHOR_DATE: date,
+});
 
 describe('src', () => {
   describe('gitify', () => {
@@ -81,6 +99,7 @@ describe('src', () => {
           it('should initialise a git repository', () => {
             binary.exec.should.have.been.calledWith(['init'], {
               cwd: path,
+              env: env({}),
             });
           });
         });
@@ -127,6 +146,9 @@ describe('src', () => {
                 remote,
                 parent,
                 path,
+                name,
+                email,
+                date,
                 importedDescriptor,
               });
             });
@@ -171,6 +193,11 @@ describe('src', () => {
                 IMPORTED_DESCRIPTOR_FILE,
               ], {
                 cwd: join(parent, path),
+                env: env({
+                  name,
+                  email,
+                  date,
+                }),
               });
             });
 
@@ -181,6 +208,11 @@ describe('src', () => {
                 INITIAL_COMMIT_MESSAGE,
               ], {
                 cwd: join(parent, path),
+                env: env({
+                  name,
+                  email,
+                  date,
+                }),
               });
             });
 
@@ -192,6 +224,11 @@ describe('src', () => {
                 remote,
               ], {
                 cwd: join(parent, path),
+                env: env({
+                  name,
+                  email,
+                  date,
+                }),
               });
             });
 
@@ -204,6 +241,11 @@ describe('src', () => {
                 'master',
               ], {
                 cwd: join(parent, path),
+                env: env({
+                  name,
+                  email,
+                  date,
+                }),
               });
             });
 
@@ -213,6 +255,11 @@ describe('src', () => {
                 'master',
               ], {
                 cwd: join(parent, path),
+                env: env({
+                  name,
+                  email,
+                  date,
+                }),
               });
               response.should.eql(commit);
             });
@@ -232,6 +279,9 @@ describe('src', () => {
                 remote,
                 parent,
                 path,
+                name,
+                email,
+                date,
                 importedDescriptor,
               }).should.be.rejectedWith('User cancelled overwrite project');
             });
@@ -252,6 +302,9 @@ describe('src', () => {
                 remote,
                 parent,
                 path,
+                name,
+                email,
+                date,
                 importedDescriptor,
               }).should.be.rejectedWith('User cancelled force push');
             });
@@ -278,6 +331,9 @@ describe('src', () => {
               remote,
               parent,
               path,
+              name,
+              email,
+              date,
               importedDescriptor,
             });
           });
@@ -292,6 +348,9 @@ describe('src', () => {
               remote,
               parent,
               path,
+              name,
+              email,
+              date,
               importedDescriptor,
             });
           });
@@ -308,6 +367,11 @@ describe('src', () => {
               path,
             ], {
               cwd: parent,
+              env: env({
+                name,
+                email,
+                date,
+              }),
             });
           });
 

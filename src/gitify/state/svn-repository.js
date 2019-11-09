@@ -22,13 +22,20 @@ export function svnRepositoryFactory({
     static async create({
       url,
       uuid,
+      name,
+      email,
+      date,
     }) {
       logger.debug(`Creating SvnRepository: ${url}: ${uuid}`);
       const svnRepository = new SvnRepository({
         url,
         uuid,
       });
-      await svnRepository._init();
+      await svnRepository._init({
+        name,
+        email,
+        date,
+      });
       return svnRepository;
     }
 
@@ -66,13 +73,20 @@ export function svnRepositoryFactory({
       return exported;
     }
 
-    async _init() {
+    async _init({
+      name,
+      email,
+      date,
+    }) {
       this.last = 0;
       this.project = await Project.create({
         svnUrl: this.url,
         revision: this.last,
         parent: workingDirectory.path,
         path: join(REPOSITORIES_DIR, this.uuid),
+        name,
+        email,
+        date,
       });
     }
 

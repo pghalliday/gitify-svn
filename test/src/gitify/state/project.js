@@ -14,6 +14,9 @@ const svnUrl = 'svnUrl';
 const revision = 'revision';
 const parent = 'parent';
 const path = 'path';
+const name = 'name';
+const email = 'email';
+const date = 'date';
 const remote = 'remote';
 const commit = 'commit';
 const exported = {
@@ -52,6 +55,9 @@ describe('src', () => {
               revision,
               parent,
               path,
+              name,
+              email,
+              date,
             });
           });
 
@@ -66,6 +72,9 @@ describe('src', () => {
               remote,
               parent,
               path,
+              name,
+              email,
+              date,
               importedDescriptor: {
                 svnUrl,
                 revision,

@@ -15,6 +15,9 @@ export function projectFactory({
       revision,
       parent,
       path,
+      name,
+      email,
+      date,
     }) {
       // eslint-disable-next-line max-len
       logger.debug(`Creating a new project for SVN url: ${svnUrl}`);
@@ -25,6 +28,9 @@ export function projectFactory({
       await project._init({
         svnUrl,
         revision,
+        name,
+        email,
+        date,
       });
       return project;
     }
@@ -66,12 +72,18 @@ export function projectFactory({
     async _init({
       svnUrl,
       revision,
+      name,
+      email,
+      date,
     }) {
       this.remote = await prompt.input(promptProjectRemote(svnUrl));
       this.commit = await git.newSubmodule({
         remote: this.remote,
         parent: this.parent,
         path: this.path,
+        name,
+        email,
+        date,
         importedDescriptor: {
           svnUrl,
           revision,

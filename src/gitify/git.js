@@ -16,7 +16,27 @@ import {
   INITIAL_COMMIT_MESSAGE,
   promptConfirmOverwriteProject,
   promptConfirmForcePush,
+  DEFAULT_NAME,
+  DEFAULT_EMAIL,
 } from '../constants';
+
+const execOptions = ({
+  cwd,
+  name = DEFAULT_NAME,
+  email = DEFAULT_EMAIL,
+  date,
+}) => ({
+  cwd,
+  env: {
+    ...process.env,
+    GIT_COMMITTER_NAME: name,
+    GIT_COMMITTER_EMAIL: email,
+    GIT_COMMITTER_DATE: date,
+    GIT_AUTHOR_NAME: name,
+    GIT_AUTHOR_EMAIL: email,
+    GIT_AUTHOR_DATE: date,
+  },
+});
 
 export function gitFactory({
   Binary,
@@ -36,15 +56,18 @@ export function gitFactory({
     }) {
       await this.binary.exec([
         'init',
-      ], {
+      ], execOptions({
         cwd: path,
-      });
+      }));
     }
 
     async pushNewRepository({
       remote,
       parent,
       path,
+      name,
+      email,
+      date,
       importedDescriptor,
     }) {
       const subPath = join(parent, path);
@@ -67,9 +90,12 @@ export function gitFactory({
           subPath,
           IMPORTED_DESCRIPTOR_FILE,
       );
-      const subOptions = {
+      const options = execOptions({
         cwd: subPath,
-      };
+        name,
+        email,
+        date,
+      });
       await promisify(mkdirp)(subPath);
       await this.initRepository({
         path: subPath,
@@ -81,60 +107,69 @@ export function gitFactory({
       await this.binary.exec([
         'add',
         IMPORTED_DESCRIPTOR_FILE,
-      ], subOptions);
+      ], options);
       await this.binary.exec([
         'commit',
         '-m',
         INITIAL_COMMIT_MESSAGE,
-      ], subOptions);
+      ], options);
       await this.binary.exec([
         'remote',
         'add',
         'origin',
         remote,
-      ], subOptions);
+      ], options);
       await this.binary.exec([
         'push',
         '--force',
         '--set-upstream',
         'origin',
         'master',
-      ], subOptions);
+      ], options);
       return (await this.binary.exec([
         'rev-parse',
         'master',
-      ], subOptions)).trim();
+      ], options)).trim();
     }
 
     async newSubmodule({
       remote,
       parent,
       path,
+      name,
+      email,
+      date,
       importedDescriptor,
     }) {
       const commit = await this.pushNewRepository({
         remote,
         parent,
         path,
+        name,
+        email,
+        date,
         importedDescriptor,
       });
       const subPath = join(parent, path);
-      const parentOptions = {
+      const options = execOptions({
         cwd: parent,
-      };
+        name,
+        email,
+        date,
+      });
       await promisify(rimraf)(subPath);
       await this.binary.exec([
         'submodule',
         'add',
         remote,
         path,
-      ], parentOptions);
+      ], options);
       await this.binary.exec([
         'submodule',
         'update',
         '--init',
         '--recursive',
-      ], parentOptions);
+      ], options);
       return commit;
     }
   };

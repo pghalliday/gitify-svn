@@ -20,6 +20,9 @@ import {
   stubResolves,
 } from '../../../helpers/utils';
 
+const name = 'name';
+const email = 'email';
+const date = 'date';
 const url = 'url';
 const incorrectUrl = 'incorrectUrl';
 const uuid = 'uuid';
@@ -53,14 +56,20 @@ const repositories = [
 const info = {
   repositoryRoot: url,
   repositoryUuid: uuid,
+  lastChangedDate: date,
+  lastChangedAuthor: `${name} <${email}>`,
 };
 const info2 = {
   repositoryRoot: url2,
   repositoryUuid: uuid2,
+  lastChangedDate: date,
+  lastChangedAuthor: `${name} <${email}>`,
 };
 const info3 = {
   repositoryRoot: url3,
   repositoryUuid: uuid3,
+  lastChangedDate: date,
+  lastChangedAuthor: `${name} <${email}>`,
 };
 
 describe('src', () => {
@@ -186,6 +195,9 @@ describe('src', () => {
             checkCreated(FakeSvnRepository, {
               url,
               uuid,
+              name,
+              email,
+              date,
             });
             state.svnRepositories.should.eql({
               [uuid]: svnRepository,
@@ -220,6 +232,9 @@ describe('src', () => {
               checkCreated(FakeSvnRepository, {
                 url,
                 uuid,
+                name,
+                email,
+                date,
               });
               state.svnRepositories.should.eql({
                 [uuid]: svnRepository,
@@ -281,6 +296,9 @@ describe('src', () => {
                 checkCreated(FakeSvnRepository, {
                   url: url2,
                   uuid: uuid2,
+                  name,
+                  email,
+                  date,
                 });
                 state.svnRepositories.should.eql({
                   [uuid]: svnRepository,
@@ -358,6 +376,9 @@ describe('src', () => {
                   checkCreated(FakeSvnRepository, {
                     url: url3,
                     uuid: uuid3,
+                    name,
+                    email,
+                    date,
                   });
                   state.svnRepositories.should.eql({
                     [uuid]: svnRepository,
@@ -422,6 +443,9 @@ describe('src', () => {
                 checkCreated(FakeSvnRepository, {
                   url,
                   uuid,
+                  name,
+                  email,
+                  date,
                 });
                 state.svnRepositories.should.eql({
                   [uuid]: svnRepository,

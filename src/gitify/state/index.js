@@ -9,6 +9,9 @@ import {
   PROMPT_REPOSITORY_URL,
   promptConfirmRoot,
 } from '../../constants';
+import {
+  parseAuthor,
+} from './lib/utils';
 import loggerFactory from '../../logger';
 import prompt from '../prompt';
 import svn from '../svn';
@@ -68,6 +71,8 @@ export function stateFactory({
         path: '',
         revision: 0,
       });
+      const date = info.lastChangedDate;
+      const {name, email} = parseAuthor(info.lastChangedAuthor);
       const uuid = info.repositoryUuid;
       // check that the supplied url is the root of the repository
       if (info.repositoryRoot !== url) {
@@ -91,6 +96,9 @@ export function stateFactory({
         svnRepository = await SvnRepository.create({
           url,
           uuid: uuid,
+          name,
+          email,
+          date,
         });
         this.svnRepositories[uuid] = svnRepository;
         await stateFile.write(this._export());

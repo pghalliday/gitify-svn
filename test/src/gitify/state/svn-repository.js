@@ -19,6 +19,9 @@ import {
 
 const url = 'url';
 const uuid = 'uuid';
+const name = 'name';
+const email = 'email';
+const date = 'date';
 const last = 0;
 const revision1 = {
   repository: url,
@@ -69,12 +72,18 @@ describe('src', () => {
             const svnRepository = await SvnRepository.create({
               url,
               uuid,
+              name,
+              email,
+              date,
             });
             checkCreated(FakeProject, {
               svnUrl: url,
               revision: 0,
               parent: workingDir,
               path: join(REPOSITORIES_DIR, uuid),
+              name,
+              email,
+              date,
             });
             svnRepository.url.should.eql(url);
             svnRepository.uuid.should.eql(uuid);
