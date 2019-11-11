@@ -40,3 +40,21 @@ To link the in development binary to the global path for testing use:
 ```
 npm link
 ```
+
+To run the end to end integration test:
+
+```
+./end-to-end-test.sh
+```
+
+The end to end tests work by importing some known SVN repository states, running the tool with known responses to prompts and then checking the checksums of the resulting Git repositories. New scenarios can be added by making new commits to the test SVN repositories and then running the tool again to record prompt responses using:
+
+```
+./end-to-end-continue.sh
+```
+
+Once finished, exit the tool with `ctrl-c` and run the following to save the SVN repository states, correct Git respository checksums and prompt file:
+
+```
+./end-to-end-save.sh
+```
