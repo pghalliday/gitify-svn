@@ -203,40 +203,24 @@ describe('src', () => {
 
             describe('then next with no more prompts', () => {
               beforeEach(async () => {
-                stubResolves(callback, newResponses);
-                next = await Promise.all([
-                  promptFile.next({
-                    callback,
-                    question: question4,
-                  }),
-                  promptFile.next({
-                    callback,
-                    question: question5,
-                  }),
-                  promptFile.next({
-                    callback,
-                    question: question6,
-                  }),
-                ]);
+                stubResolves(callback, []);
+                sinon.stub(process, 'exit');
+                await promptFile.next({
+                  callback,
+                  question: question4,
+                });
+              });
+
+              afterEach(() => {
+                process.exit.restore();
               });
 
               it('should not write the file', () => {
                 fsMock.getEntry(promptFilePath).data.should.eql(promptsText);
               });
 
-              it('should return responses from the callbacks', () => {
-                next.should.eql(newResponses);
-              });
-
-              describe('then flush', () => {
-                beforeEach(async () => {
-                  await promptFile.flush();
-                });
-
-                it('should write new prompts to the file', () => {
-                  fsMock.getEntry(promptFilePath).data
-                      .should.eql(newPromptsText);
-                });
+              it('should exit the process', () => {
+                process.exit.should.have.been.calledWith(0);
               });
             });
           });
