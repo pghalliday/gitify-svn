@@ -2,6 +2,9 @@
 
 set -e
 
+DIR="$(dirname "$(readlink -f "$0")")"
+cd $DIR/end-to-end
+
 . svn-repos.sh
 . git-repos.sh
 
