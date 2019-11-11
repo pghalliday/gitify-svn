@@ -116,28 +116,42 @@ export function stateFactory({
 
     async getNext() {
       const keys = Object.keys(this.svnRepositories);
+      let next;
       if (keys.length === 0) {
         logger.info('No SVN repositories have been added yet');
-        this._next = await this._promptForNext();
+        next = await this._promptForNext();
       } else {
         for (let i = 0; i < keys.length; i++) {
           const svnRepository = this.svnRepositories[keys[i]];
           const revision = await svnRepository.getNext();
-          this._next = compareDates(this._next, revision);
+          next = compareDates(next, revision);
         }
       }
-      while (!this._next) {
+      while (!next) {
         // eslint-disable-next-line max-len
         logger.info('No SVN repositories have a next revision, add another to continue');
-        this._next = await this._promptForNext();
+        next = await this._promptForNext();
       }
-      return this._next;
+      return next;
     }
 
-    async resolve() {
-      this.svnRepositories[this._next.uuid].resolve();
-      delete this._next;
+    async processNext() {
+      const revision = this.getNext();
+
+      // TODO: Check changes to externals for new SVN
+      // repositories (then return as we won't want to
+      // process this revision till the other respositories
+      // have caught up)
+
+      this.svnRepository[revision.uuid].processNext();
       await stateFile.write(this._export());
+    }
+
+    // istanbul ignore next
+    async start() {
+      while (true) {
+        await this.processNext();
+      }
     }
   };
 }
