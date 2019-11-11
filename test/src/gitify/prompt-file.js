@@ -8,6 +8,7 @@ import {
 import {
   FsMock,
   FS_FILE,
+  FS_DIRECTORY,
 } from '../../mocks/fs';
 import {
   stubResolves,
@@ -65,6 +66,7 @@ const newPrompts = zipWith(newQuestions, newResponses, zipPrompt);
 const newPromptsText = JSON.stringify([...prompts, ...newPrompts], null, 2);
 const changedPrompts = zipWith(newQuestions, responses, zipPrompt);
 const changedPromptsText = JSON.stringify(changedPrompts, null, 2);
+const emptyPromptsText = JSON.stringify([], null, 2);
 
 describe('src', () => {
   describe('gitify', () => {
@@ -81,47 +83,24 @@ describe('src', () => {
       });
 
       describe('init', () => {
-        beforeEach(() => {
-          fsMock = new FsMock({
-            [promptFilePath]: {
-              type: FS_FILE,
-              data: promptsText,
-            },
-          });
-        });
-
-        afterEach(() => {
-          fsMock.restore();
-        });
-
-        describe('when not using prompts from the prompt file', () => {
+        describe('when the prompt file does not exist', () => {
           beforeEach(async () => {
-            stubResolves(callback, newResponses);
+            fsMock = new FsMock({
+              [workingDir]: {
+                type: FS_DIRECTORY,
+              },
+            });
             await promptFile.init({
               usePromptFile: false,
             });
-            next = await Promise.all([
-              promptFile.next({
-                callback,
-                question: question4,
-              }),
-              promptFile.next({
-                callback,
-                question: question5,
-              }),
-              promptFile.next({
-                callback,
-                question: question6,
-              }),
-            ]);
+          });
+
+          afterEach(() => {
+            fsMock.restore();
           });
 
           it('should not write the file', () => {
-            fsMock.getEntry(promptFilePath).data.should.eql(promptsText);
-          });
-
-          it('should return responses from the callbacks', () => {
-            next.should.eql(newResponses);
+            expect(fsMock.getEntry(promptFilePath)).to.not.be.ok;
           });
 
           describe('then flush', () => {
@@ -129,19 +108,53 @@ describe('src', () => {
               await promptFile.flush();
             });
 
-            it('should write new prompts to the file', () => {
+            it('should write empty prompts to the file', () => {
               fsMock.getEntry(promptFilePath).data
-                  .should.eql(newPromptsText);
+                  .should.eql(emptyPromptsText);
             });
           });
         });
 
-        describe('when using prompts from the prompt file', () => {
-          describe('when the questions have changed', () => {
+        describe('when the prompt file is invalid', () => {
+          beforeEach(() => {
+            fsMock = new FsMock({
+              [promptFilePath]: {
+                type: FS_FILE,
+                data: 'not valid json',
+              },
+            });
+          });
+
+          afterEach(() => {
+            fsMock.restore();
+          });
+
+          it('should throw an error', async () => {
+            await promptFile.init({
+              usePromptFile: false,
+            }).should.be.rejectedWith('Unexpected token');
+          });
+        });
+
+        describe('when the prompt file does exist', () => {
+          beforeEach(() => {
+            fsMock = new FsMock({
+              [promptFilePath]: {
+                type: FS_FILE,
+                data: promptsText,
+              },
+            });
+          });
+
+          afterEach(() => {
+            fsMock.restore();
+          });
+
+          describe('when not using prompts from the prompt file', () => {
             beforeEach(async () => {
-              stubResolves(callback, []);
+              stubResolves(callback, newResponses);
               await promptFile.init({
-                usePromptFile: true,
+                usePromptFile: false,
               });
               next = await Promise.all([
                 promptFile.next({
@@ -159,8 +172,12 @@ describe('src', () => {
               ]);
             });
 
-            it('should read in the prompts', () => {
-              next.should.eql(responses);
+            it('should not write the file', () => {
+              fsMock.getEntry(promptFilePath).data.should.eql(promptsText);
+            });
+
+            it('should return responses from the callbacks', () => {
+              next.should.eql(newResponses);
             });
 
             describe('then flush', () => {
@@ -168,59 +185,99 @@ describe('src', () => {
                 await promptFile.flush();
               });
 
-              it('should write updated prompts to the file', () => {
+              it('should write new prompts to the file', () => {
                 fsMock.getEntry(promptFilePath).data
-                    .should.eql(changedPromptsText);
+                    .should.eql(newPromptsText);
               });
             });
           });
 
-          describe('when the questions have not changed', () => {
-            beforeEach(async () => {
-              stubResolves(callback, []);
-              await promptFile.init({
-                usePromptFile: true,
-              });
-              next = await Promise.all([
-                promptFile.next({
-                  callback,
-                  question: question1,
-                }),
-                promptFile.next({
-                  callback,
-                  question: question2,
-                }),
-                promptFile.next({
-                  callback,
-                  question: question3,
-                }),
-              ]);
-            });
-
-            it('should read in the prompts', () => {
-              next.should.eql(responses);
-            });
-
-            describe('then next with no more prompts', () => {
+          describe('when using prompts from the prompt file', () => {
+            describe('when the questions have changed', () => {
               beforeEach(async () => {
                 stubResolves(callback, []);
-                sinon.stub(process, 'exit');
-                await promptFile.next({
-                  callback,
-                  question: question4,
+                await promptFile.init({
+                  usePromptFile: true,
+                });
+                next = await Promise.all([
+                  promptFile.next({
+                    callback,
+                    question: question4,
+                  }),
+                  promptFile.next({
+                    callback,
+                    question: question5,
+                  }),
+                  promptFile.next({
+                    callback,
+                    question: question6,
+                  }),
+                ]);
+              });
+
+              it('should read in the prompts', () => {
+                next.should.eql(responses);
+              });
+
+              describe('then flush', () => {
+                beforeEach(async () => {
+                  await promptFile.flush();
+                });
+
+                it('should write updated prompts to the file', () => {
+                  fsMock.getEntry(promptFilePath).data
+                      .should.eql(changedPromptsText);
                 });
               });
+            });
 
-              afterEach(() => {
-                process.exit.restore();
+            describe('when the questions have not changed', () => {
+              beforeEach(async () => {
+                stubResolves(callback, []);
+                await promptFile.init({
+                  usePromptFile: true,
+                });
+                next = await Promise.all([
+                  promptFile.next({
+                    callback,
+                    question: question1,
+                  }),
+                  promptFile.next({
+                    callback,
+                    question: question2,
+                  }),
+                  promptFile.next({
+                    callback,
+                    question: question3,
+                  }),
+                ]);
               });
 
-              it('should not write the file', () => {
-                fsMock.getEntry(promptFilePath).data.should.eql(promptsText);
+              it('should read in the prompts', () => {
+                next.should.eql(responses);
               });
 
-              it('should exit the process', () => {
-                process.exit.should.have.been.calledWith(0);
+              describe('then next with no more prompts', () => {
+                beforeEach(async () => {
+                  stubResolves(callback, []);
+                  sinon.stub(process, 'exit');
+                  await promptFile.next({
+                    callback,
+                    question: question4,
+                  });
+                });
+
+                afterEach(() => {
+                  process.exit.restore();
+                });
+
+                it('should not write the file', () => {
+                  fsMock.getEntry(promptFilePath).data.should.eql(promptsText);
+                });
+
+                it('should exit the process', () => {
+                  process.exit.should.have.been.calledWith(0);
+                });
               });
             });
           });

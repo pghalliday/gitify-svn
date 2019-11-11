@@ -21,8 +21,15 @@ export class PromptFile {
     usePromptFile,
   }) {
     this.path = join(workingDirectory.path, PROMPT_FILE);
-    const json = await promisify(readFile)(this.path, 'utf8');
-    this.prompts = JSON.parse(json);
+    try {
+      const json = await promisify(readFile)(this.path, 'utf8');
+      this.prompts = JSON.parse(json);
+    } catch (e) {
+      if (e.code !== 'ENOENT') {
+        throw e;
+      }
+      this.prompts = [];
+    }
     this.usePromptFile = usePromptFile;
     this.index = 0;
   }

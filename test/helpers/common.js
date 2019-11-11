@@ -16,5 +16,7 @@ sinon.stub(loggerFactory, 'create').returns({
   error: () => {},
   warn: () => {},
   info: () => {},
+  verbose: () => {},
   debug: () => {},
+  silly: () => {},
 });
