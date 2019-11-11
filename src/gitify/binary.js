@@ -20,6 +20,10 @@ export default class Binary {
       logger.debug({
         spawn: this.binary,
         args: allArgs,
+        cwd: options ? options.cwd : undefined,
+      });
+      logger.silly({
+        env: options ? options.env : undefined,
       });
       const child = spawn(this.binary, allArgs, options);
       let output = '';

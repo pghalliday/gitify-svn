@@ -11,6 +11,7 @@ import {
   join,
 } from 'path';
 import prompt from './prompt';
+import loggerFactory from '../logger';
 import {
   IMPORTED_DESCRIPTOR_FILE,
   INITIAL_COMMIT_MESSAGE,
@@ -19,6 +20,8 @@ import {
   DEFAULT_NAME,
   DEFAULT_EMAIL,
 } from '../constants';
+
+const logger = loggerFactory.create(__filename);
 
 const execOptions = ({
   cwd,
@@ -44,7 +47,11 @@ export function gitFactory({
   return class Git {
     init({
       binary,
+      root,
     }) {
+      logger.debug(`root: ${root}`);
+      logger.debug(`binary: ${binary}`);
+      this.root = root;
       this.binary = new Binary({
         binary,
         args: [],
@@ -57,20 +64,19 @@ export function gitFactory({
       await this.binary.exec([
         'init',
       ], execOptions({
-        cwd: path,
+        cwd: join(this.root, path),
       }));
     }
 
     async pushNewRepository({
       remote,
-      parent,
       path,
       name,
       email,
       date,
       importedDescriptor,
     }) {
-      const subPath = join(parent, path);
+      const subPath = join(this.root, path);
       const confirmOverwite = await prompt.confirm(
           promptConfirmOverwriteProject(subPath),
           false,
@@ -98,7 +104,7 @@ export function gitFactory({
       });
       await promisify(mkdirp)(subPath);
       await this.initRepository({
-        path: subPath,
+        path,
       });
       await promisify(writeFile)(
           importedDescriptorFile,
@@ -143,16 +149,16 @@ export function gitFactory({
     }) {
       const commit = await this.pushNewRepository({
         remote,
-        parent,
-        path,
+        path: join(parent, path),
         name,
         email,
         date,
         importedDescriptor,
       });
-      const subPath = join(parent, path);
+      const parentPath = join(this.root, parent);
+      const subPath = join(parentPath, path);
       const options = execOptions({
-        cwd: parent,
+        cwd: parentPath,
         name,
         email,
         date,

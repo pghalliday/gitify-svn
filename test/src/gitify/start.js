@@ -2,7 +2,6 @@ import {
   start,
 } from '../../../src/gitify/start';
 import workingDirectory from '../../../src/gitify/working-directory';
-import git from '../../../src/gitify/git';
 import svn from '../../../src/gitify/svn';
 import state from '../../../src/gitify/state';
 
@@ -19,7 +18,6 @@ describe('src', () => {
     describe('start', () => {
       beforeEach(async () => {
         sinon.stub(workingDirectory, 'init').resolves(undefined);
-        sinon.stub(git, 'init').returns(undefined);
         sinon.stub(svn, 'init').resolves(undefined);
         sinon.stub(state, 'init').resolves(undefined);
         await start({
@@ -35,7 +33,6 @@ describe('src', () => {
 
       afterEach(() => {
         workingDirectory.init.restore();
-        git.init.restore();
         svn.init.restore();
         state.init.restore();
       });
@@ -44,16 +41,10 @@ describe('src', () => {
         workingDirectory.init.should.have.been.calledWith({
           path: directory,
           usePromptFile,
+          gitBinary,
         });
         // eslint-disable-next-line max-len
         workingDirectory.init.should.have.been.calledBefore(state.init);
-      });
-
-      it('should initialise the git instance', () => {
-        git.init.should.have.been.calledWith({
-          binary: gitBinary,
-        });
-        git.init.should.have.been.calledBefore(workingDirectory.init);
       });
 
       it('should initialise the svn instance', () => {

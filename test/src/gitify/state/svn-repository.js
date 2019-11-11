@@ -79,7 +79,7 @@ describe('src', () => {
             checkCreated(FakeProject, {
               svnUrl: url,
               revision: 0,
-              parent: workingDir,
+              parent: '.',
               path: join(REPOSITORIES_DIR, uuid),
               name,
               email,

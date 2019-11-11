@@ -1,6 +1,5 @@
 import workingDirectory from './working-directory';
 import state from './state';
-import git from './git';
 import svn from './svn';
 
 export async function start({
@@ -12,11 +11,9 @@ export async function start({
   svnBinary,
   usePromptFile,
 }) {
-  git.init({
-    binary: gitBinary,
-  });
   await workingDirectory.init({
     path: directory,
+    gitBinary,
     usePromptFile,
   });
   await svn.init({

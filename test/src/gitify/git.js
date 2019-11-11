@@ -27,6 +27,7 @@ import {
 } from '../../mocks/fs';
 
 const bin = 'bin';
+const root = 'root';
 const parent = 'parent';
 const path = 'path';
 const name = 'name';
@@ -76,6 +77,7 @@ describe('src', () => {
         beforeEach(() => {
           git.init({
             binary: bin,
+            root,
           });
         });
 
@@ -98,7 +100,7 @@ describe('src', () => {
 
           it('should initialise a git repository', () => {
             binary.exec.should.have.been.calledWith(['init'], {
-              cwd: path,
+              cwd: join(root, path),
               env: env({}),
             });
           });
@@ -110,10 +112,10 @@ describe('src', () => {
 
           beforeEach(async () => {
             fsMock = new FsMock({
-              [join(parent, path)]: {
+              [join(root, path)]: {
                 type: FS_DIRECTORY,
               },
-              [join(parent, path, 'test')]: {
+              [join(root, path, 'test')]: {
                 type: FS_FILE,
                 data: 'data',
               },
@@ -144,7 +146,6 @@ describe('src', () => {
               ]);
               response = await git.pushNewRepository({
                 remote,
-                parent,
                 path,
                 name,
                 email,
@@ -155,7 +156,7 @@ describe('src', () => {
 
             it('should confirm overwrite', () => {
               prompt.confirm.should.have.been.calledWith(
-                  promptConfirmOverwriteProject(join(parent, path)),
+                  promptConfirmOverwriteProject(join(root, path)),
                   false,
               );
             });
@@ -168,22 +169,24 @@ describe('src', () => {
             });
 
             it('should delete the existing directory', () => {
-              expect(fsMock.getEntry(join(parent, path, 'test'))).to.not.be.ok;
+              expect(fsMock.getEntry(join(root, path, 'test')))
+                  .to.not.be.ok;
             });
 
-            it('should create the submodule directory', () => {
-              fsMock.getEntry(join(parent, path)).type.should.eql(FS_DIRECTORY);
+            it('should create the repository directory', () => {
+              fsMock.getEntry(join(root, path)).type
+                  .should.eql(FS_DIRECTORY);
             });
 
             it('should init a git repository', () => {
               git.initRepository.should.have.been.calledWith({
-                path: join(parent, path),
+                path: path,
               });
             });
 
             it('should create the imported descriptor file', () => {
               fsMock.getEntry(
-                  join(parent, path, IMPORTED_DESCRIPTOR_FILE)
+                  join(root, path, IMPORTED_DESCRIPTOR_FILE)
               ).data.should.eql(JSON.stringify(importedDescriptor, null, 2));
             });
 
@@ -192,7 +195,7 @@ describe('src', () => {
                 'add',
                 IMPORTED_DESCRIPTOR_FILE,
               ], {
-                cwd: join(parent, path),
+                cwd: join(root, path),
                 env: env({
                   name,
                   email,
@@ -207,7 +210,7 @@ describe('src', () => {
                 '-m',
                 INITIAL_COMMIT_MESSAGE,
               ], {
-                cwd: join(parent, path),
+                cwd: join(root, path),
                 env: env({
                   name,
                   email,
@@ -223,7 +226,7 @@ describe('src', () => {
                 'origin',
                 remote,
               ], {
-                cwd: join(parent, path),
+                cwd: join(root, path),
                 env: env({
                   name,
                   email,
@@ -240,7 +243,7 @@ describe('src', () => {
                 'origin',
                 'master',
               ], {
-                cwd: join(parent, path),
+                cwd: join(root, path),
                 env: env({
                   name,
                   email,
@@ -254,7 +257,7 @@ describe('src', () => {
                 'rev-parse',
                 'master',
               ], {
-                cwd: join(parent, path),
+                cwd: join(root, path),
                 env: env({
                   name,
                   email,
@@ -265,7 +268,7 @@ describe('src', () => {
             });
           });
 
-          describe('when the cancels overwrite', () => {
+          describe('when the user cancels overwrite', () => {
             beforeEach(async () => {
               stubResolves(prompt.confirm, [
                 false,
@@ -277,7 +280,6 @@ describe('src', () => {
             it('should throw an error', async () => {
               await git.pushNewRepository({
                 remote,
-                parent,
                 path,
                 name,
                 email,
@@ -287,7 +289,7 @@ describe('src', () => {
             });
           });
 
-          describe('when the cancels force push', () => {
+          describe('when the user cancels force push', () => {
             beforeEach(async () => {
               stubResolves(prompt.confirm, [
                 true,
@@ -300,7 +302,6 @@ describe('src', () => {
             it('should throw an error', async () => {
               await git.pushNewRepository({
                 remote,
-                parent,
                 path,
                 name,
                 email,
@@ -317,7 +318,7 @@ describe('src', () => {
 
           beforeEach(async () => {
             fsMock = new FsMock({
-              [join(parent, path)]: {
+              [join(root, parent, path)]: {
                 type: FS_DIRECTORY,
               },
             });
@@ -346,8 +347,7 @@ describe('src', () => {
           it('should create and push a new repository', () => {
             git.pushNewRepository.should.have.been.calledWith({
               remote,
-              parent,
-              path,
+              path: join(parent, path),
               name,
               email,
               date,
@@ -356,7 +356,7 @@ describe('src', () => {
           });
 
           it('should delete the directory', () => {
-            expect(fsMock.getEntry(join(parent, path))).to.not.be.ok;
+            expect(fsMock.getEntry(join(root, parent, path))).to.not.be.ok;
           });
 
           it('should add the submodule', () => {
@@ -366,7 +366,23 @@ describe('src', () => {
               remote,
               path,
             ], {
-              cwd: parent,
+              cwd: join(root, parent),
+              env: env({
+                name,
+                email,
+                date,
+              }),
+            });
+          });
+
+          it('should recursively update the submodules', () => {
+            binary.exec.getCall(1).should.have.been.calledWith([
+              'submodule',
+              'update',
+              '--init',
+              '--recursive',
+            ], {
+              cwd: join(root, parent),
               env: env({
                 name,
                 email,

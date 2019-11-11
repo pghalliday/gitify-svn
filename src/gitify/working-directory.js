@@ -29,6 +29,7 @@ export function workingDirectoryFactory({
     async init({
       path,
       usePromptFile,
+      gitBinary,
     }) {
       logger.debug(`working directory set to ${path}`);
       this.path = path;
@@ -59,10 +60,15 @@ export function workingDirectoryFactory({
       loggerFactory.logToFile(logFile);
       logger.info(`logging to file: ${logFile}`);
 
+      git.init({
+        binary: gitBinary,
+        root: path,
+      });
+
       if (!isGit) {
         logger.debug('initialising git repository');
         await git.initRepository({
-          path,
+          path: '.',
         });
       }
 

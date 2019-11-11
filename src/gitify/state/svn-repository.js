@@ -9,7 +9,6 @@ import {
   importObject,
 } from './lib/utils';
 import loggerFactory from '../../logger';
-import workingDirectory from '../working-directory';
 import svn from '../svn';
 import Project from './project';
 
@@ -82,7 +81,7 @@ export function svnRepositoryFactory({
       this.project = await Project.create({
         svnUrl: this.url,
         revision: this.last,
-        parent: workingDirectory.path,
+        parent: '.',
         path: join(REPOSITORIES_DIR, this.uuid),
         name,
         email,

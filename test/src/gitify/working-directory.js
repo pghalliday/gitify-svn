@@ -29,6 +29,7 @@ import {
 const workingDir = 'workingDir';
 const stateFile = 'stateFile';
 const usePromptFile = 'usePromptFile';
+const gitBinary = 'gitBinary';
 
 describe('src', () => {
   describe('gitify', () => {
@@ -40,6 +41,8 @@ describe('src', () => {
       beforeEach(() => {
         sinon.stub(prompt, 'confirm');
         sinon.stub(promptFile, 'init');
+        sinon.stub(git, 'init');
+        stubResolves(git.init, undefined);
         sinon.stub(git, 'initRepository');
         stubResolves(git.initRepository, undefined);
         WorkingDirectory = workingDirectoryFactory({
@@ -50,6 +53,7 @@ describe('src', () => {
       afterEach(() => {
         prompt.confirm.restore();
         promptFile.init.restore();
+        git.init.restore();
         git.initRepository.restore();
       });
 
@@ -61,6 +65,7 @@ describe('src', () => {
             await workingDirectory.init({
               path: workingDir,
               usePromptFile,
+              gitBinary,
             });
           });
 
@@ -76,9 +81,16 @@ describe('src', () => {
             fsMock.getEntry(workingDir).type.should.eql(FS_DIRECTORY);
           });
 
+          it('should init the git singleton', () => {
+            git.init.should.have.been.calledWith({
+              binary: gitBinary,
+              root: workingDir,
+            });
+          });
+
           it('should initialise a git repository', () => {
             git.initRepository.should.have.been.calledWith({
-              path: workingDir,
+              path: '.',
             });
           });
 
@@ -118,6 +130,7 @@ describe('src', () => {
             it('should throw an error', async () => {
               await workingDirectory.init({
                 path: workingDir,
+                gitBinary,
               }).should.be.rejectedWith('EEXIST');
             });
           });
@@ -136,6 +149,7 @@ describe('src', () => {
               stubResolves(prompt.confirm, []);
               await workingDirectory.init({
                 path: workingDir,
+                gitBinary,
               });
             });
 
@@ -155,7 +169,7 @@ describe('src', () => {
 
             it('should initialise a git repository', () => {
               git.initRepository.should.have.been.calledWith({
-                path: workingDir,
+                path: '.',
               });
             });
 
@@ -190,6 +204,7 @@ describe('src', () => {
                 stubResolves(prompt.confirm, true);
                 await workingDirectory.init({
                   path: workingDir,
+                  gitBinary,
                 });
               });
 
@@ -228,6 +243,7 @@ describe('src', () => {
               it('should throw an error', async () => {
                 await workingDirectory.init({
                   path: workingDir,
+                  gitBinary,
                 }).should.be.rejectedWith('User cancelled');
               });
             });
