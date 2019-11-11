@@ -1,5 +1,5 @@
 import workingDirectory from './working-directory';
-import state from './state';
+import svnRepositories from './state/svn-repositories';
 import svn from './svn';
 
 export async function start({
@@ -21,7 +21,8 @@ export async function start({
     password,
     binary: svnBinary,
   });
-  await state.init({
+  await svnRepositories.init({
     repositories,
   });
+  await svnRepositories.migrate();
 }

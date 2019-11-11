@@ -2,7 +2,11 @@ import {
   join,
 } from 'path';
 import {
+  parseAuthor,
+} from './lib/utils';
+import {
   REPOSITORIES_DIR,
+  promptConfirmRoot,
 } from '../../constants';
 import {
   exportObject,
@@ -10,6 +14,7 @@ import {
 } from './lib/utils';
 import loggerFactory from '../../logger';
 import svn from '../svn';
+import prompt from '../prompt';
 import Project from './project';
 
 const logger = loggerFactory.create(__filename);
@@ -20,34 +25,20 @@ export function svnRepositoryFactory({
   return class SvnRepository {
     static async create({
       url,
-      uuid,
-      name,
-      email,
-      date,
     }) {
-      logger.debug(`Creating SvnRepository: ${url}: ${uuid}`);
-      const svnRepository = new SvnRepository({
-        url,
-        uuid,
-      });
+      logger.debug(`Creating SvnRepository: ${url}`);
+      const svnRepository = new SvnRepository({});
       await svnRepository._init({
-        name,
-        email,
-        date,
+        url,
       });
       return svnRepository;
     }
 
     constructor({
-      url,
-      uuid,
       exported,
     }) {
       if (exported) {
         this._import(exported);
-      } else {
-        this.url = url;
-        this.uuid = uuid;
       }
     }
 
@@ -73,11 +64,34 @@ export function svnRepositoryFactory({
     }
 
     async _init({
-      name,
-      email,
-      date,
+      url,
     }) {
       this.last = 0;
+      this.info = await svn.info({
+        repository: url,
+        path: '',
+        revision: 0,
+      });
+      this.uuid = this.info.repositoryUuid;
+      // check that the supplied url is the root of the repository
+      if (this.info.repositoryRoot !== url) {
+        logger.info('It is only possible to convert the repository root');
+        const confirm = await prompt.confirm(
+            promptConfirmRoot(this.info.repositoryRoot),
+            true,
+        );
+        if (confirm) {
+          url = this.info.repositoryRoot;
+        } else {
+          throw new Error('Can only convert the root of an SVN repository');
+        }
+      }
+      this.url = url;
+    }
+
+    async initProject() {
+      const date = this.info.lastChangedDate;
+      const {name, email} = parseAuthor(this.info.lastChangedAuthor);
       this.project = await Project.create({
         svnUrl: this.url,
         revision: this.last,
@@ -99,8 +113,11 @@ export function svnRepositoryFactory({
       return this._next;
     }
 
-    resolve() {
-      logger.info(`${this.url}: Resolving revision: ${this._next.revision}`);
+    async processNext() {
+      logger.info(`${this.url}: Processing revision: ${this._next.revision}`);
+
+      // TODO: apply the revision
+
       this.last = this._next.revision;
       delete this._next;
     }

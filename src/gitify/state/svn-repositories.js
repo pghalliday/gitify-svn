@@ -10,6 +10,7 @@ import {
 } from '../../constants';
 import loggerFactory from '../../logger';
 import prompt from '../prompt';
+import stateFile from './state-file';
 import repositoriesDirectory from './repositories-directory';
 import SvnRepository from './svn-repository';
 
@@ -20,19 +21,19 @@ export function svnRepositoriesFactory({
 }) {
   return class SvnRepositories {
     async init({
-      exported,
-      urls,
+      repositories,
     }) {
       await repositoriesDirectory.init();
+      const exported = await stateFile.read();
       if (exported) {
         this._import(exported);
       } else {
         logger.debug('Creating SvnRepositories');
         this.list = {};
       }
-      for (let i = 0; i < urls.length; i++) {
+      for (let i = 0; i < repositories.length; i++) {
         await this.add({
-          url: urls[i],
+          url: repositories[i],
         });
       }
     }
@@ -46,7 +47,7 @@ export function svnRepositoriesFactory({
       );
     }
 
-    export() {
+    _export() {
       logger.debug('Exporting State');
       const exported = {
         ...mapValues(this.list, exportObject),
@@ -68,7 +69,9 @@ export function svnRepositoriesFactory({
       } else {
         // eslint-disable-next-line max-len
         logger.info(`Adding new SVN repository: ${svnRepository.url}: ${svnRepository.uuid}`);
+        await svnRepository.initProject();
         this.list[svnRepository.uuid] = svnRepository;
+        await stateFile.write(this._export());
       }
       return svnRepository;
     }
@@ -80,24 +83,30 @@ export function svnRepositoriesFactory({
       });
     }
 
-    async getNext() {
+    async _getNext() {
       const keys = Object.keys(this.list);
       let next;
-      if (keys.length === 0) {
-        logger.info('No SVN repositories have been added yet');
-        next = await this._promptForNext();
-      } else {
-        for (let i = 0; i < keys.length; i++) {
-          const svnRepository = this.list[keys[i]];
-          next = await compareDates(next, svnRepository);
-        }
+      for (let i = 0; i < keys.length; i++) {
+        next = await compareDates(next, this.list[keys[i]]);
       }
-      while (!(await next.getNext())) {
+      while (!next || !(await next.getNext())) {
         // eslint-disable-next-line max-len
-        logger.info('No SVN repositories have a next revision, add another to continue');
+        logger.info('No known SVN repositories have a next revision, add one to continue');
         next = await this._promptForNext();
       }
       return next;
+    }
+
+    async processNext() {
+      const svnRepository = await this._getNext();
+
+      // TODO: Check changes to externals for new SVN
+      // repositories (then return as we won't want to
+      // process this revision till the other respositories
+      // have caught up)
+
+      await svnRepository.processNext();
+      await stateFile.write(this._export());
     }
 
     get length() {
@@ -106,6 +115,13 @@ export function svnRepositoriesFactory({
 
     get(uuid) {
       return this.list[uuid];
+    }
+
+    // istanbul ignore next
+    async migrate() {
+      while (true) {
+        await svnRepositories.processNext();
+      }
     }
   };
 }
@@ -116,7 +132,7 @@ async function compareDates(repo1, repo2) {
   const rev2 = await repo2.getNext();
   if (!rev1) return repo2;
   if (!rev2) return repo1;
-  return rev1.date < rev2.date ? rev1 : rev2;
+  return rev1.date < rev2.date ? repo1 : repo2;
 }
 
 const SvnRepositories = svnRepositoriesFactory({

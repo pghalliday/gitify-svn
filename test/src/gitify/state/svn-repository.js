@@ -4,20 +4,25 @@ import {
 import Project from '../../../../src/gitify/state/project';
 import workingDirectory from '../../../../src/gitify/working-directory';
 import svn from '../../../../src/gitify/svn';
+import prompt from '../../../../src/gitify/prompt';
 import {
   join,
 } from 'path';
 import {
   REPOSITORIES_DIR,
+  promptConfirmRoot,
 } from '../../../../src/constants';
 import {
   createInstance,
   createConstructor,
   checkConstructed,
   checkCreated,
+  stubReturns,
+  stubResolves,
 } from '../../../helpers/utils';
 
 const url = 'url';
+const incorrectUrl = 'incorrectUrl';
 const uuid = 'uuid';
 const name = 'name';
 const email = 'email';
@@ -39,56 +44,123 @@ const exported = {
   project: exportedProject,
 };
 const workingDir = 'workingDir';
+const info = {
+  repositoryRoot: url,
+  repositoryUuid: uuid,
+  lastChangedDate: date,
+  lastChangedAuthor: `${name} <${email}>`,
+};
+
+const project = createInstance(Project, {
+  export: sinon.stub().returns(exportedProject),
+});
+const FakeProject = createConstructor();
+const SvnRepository = svnRepositoryFactory({
+  Project: FakeProject,
+});
 
 describe('src', () => {
   describe('gitify', () => {
     describe('state', () => {
       describe('SvnRepository', () => {
-        let revisionMethod;
-        let project;
-        let FakeProject;
-        let SvnRepository;
-
         beforeEach(() => {
           workingDirectory.path = workingDir,
-          revisionMethod = sinon.stub(svn, 'revision').callsFake(
+          sinon.stub(svn, 'revision').callsFake(
               (params) => Promise.resolve(params)
           );
-          project = createInstance(Project, {
-            export: sinon.stub().returns(exportedProject),
-          });
-          FakeProject = createConstructor(project);
-          SvnRepository = svnRepositoryFactory({
-            Project: FakeProject,
-          });
+          sinon.stub(svn, 'info').resolves(info);
+          sinon.stub(prompt, 'confirm');
+          stubResolves(FakeProject.create, project);
+          stubReturns(FakeProject, project);
         });
 
         afterEach(() => {
-          revisionMethod.restore();
+          svn.revision.restore();
+          svn.info.restore();
+          prompt.confirm.restore();
         });
 
         describe('create', () => {
-          it('should construct a new SvnRepository and init it', async () => {
-            const svnRepository = await SvnRepository.create({
-              url,
-              uuid,
-              name,
-              email,
-              date,
+          let svnRepository;
+
+          describe('with a non root url', () => {
+            describe('and the user cancels', () => {
+              beforeEach(async () => {
+                stubResolves(prompt.confirm, false);
+              });
+
+              it('should throw an error', async () => {
+                await SvnRepository.create({
+                  url: incorrectUrl,
+                }).should.be.rejectedWith(
+                    'Can only convert the root of an SVN repository'
+                );
+              });
             });
-            checkCreated(FakeProject, {
-              svnUrl: url,
-              revision: 0,
-              parent: '.',
-              path: join(REPOSITORIES_DIR, uuid),
-              name,
-              email,
-              date,
+
+            describe('and the user confirms', () => {
+              beforeEach(async () => {
+                stubResolves(prompt.confirm, true);
+                svnRepository = await SvnRepository.create({
+                  url: incorrectUrl,
+                });
+              });
+
+              it('should prompt to confirm the root url', () => {
+                prompt.confirm.should.have.been.calledWith(
+                    promptConfirmRoot(url)
+                );
+              });
+
+              // eslint-disable-next-line max-len
+              it('should construct a new SvnRepository and init it', async () => {
+                svnRepository.url.should.eql(url);
+                svnRepository.uuid.should.eql(uuid);
+                svnRepository.last.should.eql(0);
+              });
+
+              it('should not initialise the project yet', () => {
+                expect(svnRepository.project).to.not.be.ok;
+              });
             });
-            svnRepository.url.should.eql(url);
-            svnRepository.uuid.should.eql(uuid);
-            svnRepository.last.should.eql(0);
-            svnRepository.project.should.eql(project);
+          });
+
+          describe('with a root url', () => {
+            beforeEach(async () => {
+              svnRepository = await SvnRepository.create({
+                url,
+              });
+            });
+
+            // eslint-disable-next-line max-len
+            it('should construct a new SvnRepository and init it', async () => {
+              svnRepository.url.should.eql(url);
+              svnRepository.uuid.should.eql(uuid);
+              svnRepository.last.should.eql(0);
+            });
+
+            it('should not initialise the project yet', () => {
+              expect(svnRepository.project).to.not.be.ok;
+            });
+
+            describe('and then initProject', () => {
+              beforeEach(async () => {
+                await svnRepository.initProject();
+              });
+
+              it('should create the project', async () => {
+                checkCreated(FakeProject, {
+                  svnUrl: url,
+                  revision: 0,
+                  parent: '.',
+                  path: join(REPOSITORIES_DIR, uuid),
+                  name,
+                  email,
+                  date,
+                });
+                svnRepository.project.should.eql(project);
+              });
+            });
           });
         });
 
@@ -125,8 +197,8 @@ describe('src', () => {
             });
 
             it('should get the next revision', async () => {
-              revisionMethod.should.have.been.calledOnce;
-              revisionMethod.should.have.been.calledWith(revision1);
+              svn.revision.should.have.been.calledOnce;
+              svn.revision.should.have.been.calledWith(revision1);
               revision.should.eql(revision1);
             });
 
@@ -136,14 +208,14 @@ describe('src', () => {
               });
 
               it('should not need to hit SVN again', async () => {
-                revisionMethod.should.have.been.calledOnce;
+                svn.revision.should.have.been.calledOnce;
                 revision.should.eql(revision1);
               });
             });
 
-            describe('and then resolve', () => {
-              beforeEach(() => {
-                svnRepository.resolve();
+            describe('and then processNext', () => {
+              beforeEach(async () => {
+                await svnRepository.processNext();
               });
 
               it('should update the last property', () => {
@@ -156,8 +228,8 @@ describe('src', () => {
                 });
 
                 it('should get the next revision', async () => {
-                  revisionMethod.should.have.been.calledTwice;
-                  revisionMethod.should.have.been.calledWith(revision2);
+                  svn.revision.should.have.been.calledTwice;
+                  svn.revision.should.have.been.calledWith(revision2);
                   revision.should.eql(revision2);
                 });
               });

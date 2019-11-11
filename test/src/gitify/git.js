@@ -16,6 +16,7 @@ import {
   createConstructor,
   checkConstructed,
   stubResolves,
+  stubReturns,
 } from '../../helpers/utils';
 import {
   join,
@@ -52,29 +53,26 @@ const env = ({
   GIT_AUTHOR_DATE: date,
 });
 
+const binary = createInstance(Binary, {
+  exec: sinon.stub(),
+});
+const FakeBinary = createConstructor();
+const Git = gitFactory({
+  Binary: FakeBinary,
+});
+
 describe('src', () => {
   describe('gitify', () => {
     describe('git', () => {
-      let binary;
-      let FakeBinary;
-      let Git;
       let git;
 
       beforeEach(() => {
-        binary = createInstance(Binary, {
-          exec: sinon.stub(),
-        });
-        FakeBinary = createConstructor([
-          binary,
-        ]);
-        Git = gitFactory({
-          Binary: FakeBinary,
-        });
         git = new Git();
       });
 
       describe('init', () => {
         beforeEach(() => {
+          stubReturns(FakeBinary, binary);
           git.init({
             binary: bin,
             root,

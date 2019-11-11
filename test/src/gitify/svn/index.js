@@ -23,6 +23,7 @@ import {
   createInstance,
   createConstructor,
   checkConstructed,
+  stubReturns,
   stubResolves,
 } from '../../../helpers/utils';
 
@@ -37,12 +38,17 @@ const revision = 'revision';
 const path = 'the path';
 const destination = 'destination';
 
+const binary = createInstance(Binary, {
+  exec: sinon.stub(),
+});
+const FakeBinary = createConstructor();
+const Svn = svnFactory({
+  Binary: FakeBinary,
+});
+
 describe('src', () => {
   describe('gitify', () => {
     describe('svn', () => {
-      let binary;
-      let FakeBinary;
-      let Svn;
       let svn;
 
       before(() => {
@@ -50,15 +56,7 @@ describe('src', () => {
         credentials.init.resolves(undefined);
         credentials.auth = auth;
         credentials.args = args;
-        binary = createInstance(Binary, {
-          exec: sinon.stub(),
-        });
-        FakeBinary = createConstructor([
-          binary,
-        ]);
-        Svn = svnFactory({
-          Binary: FakeBinary,
-        });
+        stubReturns(FakeBinary, binary);
         svn = new Svn();
       });
 

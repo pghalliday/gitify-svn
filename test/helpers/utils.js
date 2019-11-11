@@ -2,20 +2,9 @@ export const createInstance = (Class, overrides) => {
   return sinon.createStubInstance(Class, overrides);
 };
 
-export const createConstructor = (instances) => {
-  if (!Array.isArray(instances)) {
-    instances = [instances];
-  }
+export const createConstructor = () => {
   const constructor = sinon.stub();
   const create = sinon.stub();
-  let i;
-  for (i = 0; i < instances.length; i++) {
-    const instance = instances[i];
-    constructor.onCall(i).returns(instance);
-    create.onCall(i).resolves(instance);
-  }
-  constructor.onCall(i).throws(new Error('No more instances'));
-  create.onCall(i).rejects(new Error('No more instances'));
   return Object.assign(constructor, {
     create,
   });
