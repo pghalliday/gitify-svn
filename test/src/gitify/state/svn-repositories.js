@@ -5,6 +5,7 @@ import SvnRepository from '../../../../src/gitify/state/svn-repository';
 import prompt from '../../../../src/gitify/prompt';
 // eslint-disable-next-line max-len
 import repositoriesDirectory from '../../../../src/gitify/state/repositories-directory';
+import authors from '../../../../src/gitify/state/authors';
 import stateFile from '../../../../src/gitify/state/state-file';
 import {
   PROMPT_REPOSITORY_URL,
@@ -64,6 +65,7 @@ describe('src', () => {
         beforeEach(() => {
           sinon.stub(prompt, 'input');
           sinon.stub(repositoriesDirectory, 'init');
+          sinon.stub(authors, 'init');
           sinon.stub(stateFile, 'read');
           sinon.stub(stateFile, 'write').resolves(undefined);
           stubResolves(stateFile.read, []);
@@ -85,6 +87,7 @@ describe('src', () => {
         afterEach(() => {
           prompt.input.restore();
           repositoriesDirectory.init.restore();
+          authors.init.restore();
           stateFile.read.restore();
           stateFile.write.restore();
         });
@@ -105,6 +108,14 @@ describe('src', () => {
                   'url2',
                 ],
               });
+            });
+
+            it('should init the repositories directory', () => {
+              repositoriesDirectory.init.should.have.been.called;
+            });
+
+            it('should init the authors', () => {
+              authors.init.should.have.been.called;
             });
 
             it('should create the listed repositories', () => {

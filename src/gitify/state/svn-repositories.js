@@ -12,6 +12,7 @@ import loggerFactory from '../../logger';
 import prompt from '../prompt';
 import stateFile from './state-file';
 import repositoriesDirectory from './repositories-directory';
+import authors from './authors';
 import SvnRepository from './svn-repository';
 
 const logger = loggerFactory.create(__filename);
@@ -24,6 +25,7 @@ export function svnRepositoriesFactory({
       repositories,
     }) {
       await repositoriesDirectory.init();
+      await authors.init();
       const exported = await stateFile.read();
       if (exported) {
         this._import(exported);

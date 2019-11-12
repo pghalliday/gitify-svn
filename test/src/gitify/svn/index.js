@@ -1,6 +1,11 @@
 import {
   svnFactory,
+  NODE_KIND,
+  ACTION,
 } from '../../../../src/gitify/svn';
+import {
+  BinaryError,
+} from '../../../../src/gitify/binary';
 import {
   DIRECTORY_INFO,
   PARSED_DIRECTORY_INFO,
@@ -267,11 +272,190 @@ describe('src', () => {
         });
 
         describe('revision', () => {
-          it('should throw a not implemented error', async () => {
-            await svn.revision({
-              repository,
-              revision: 1,
-            }).should.be.rejectedWith('Svn: revision: not yet implemented');
+          let revision;
+
+          beforeEach(() => {
+            sinon.stub(svn, 'log');
+            sinon.stub(svn, 'info');
+            sinon.stub(svn, 'diffProps');
+          });
+
+          afterEach(() => {
+            svn.log.restore();
+            svn.info.restore();
+            svn.diffProps.restore();
+          });
+
+          describe('when log throws an error', () => {
+            beforeEach(() => {
+              svn.log.rejects(new Error('oh noes!'));
+            });
+
+            it('should rethrow the error', async () => {
+              await svn.revision({
+                repository,
+                revision: 100,
+              }).should.be.rejectedWith('oh noes!');
+            });
+          });
+
+          describe('when the revision does not exist', () => {
+            beforeEach(async () => {
+              svn.log.rejects(new BinaryError({
+                message: 'message',
+                code: 1,
+                output: '\n\nsvn: E160006: No such revision 100\n',
+              }));
+              revision = await svn.revision({
+                repository,
+                revision: 100,
+              });
+            });
+
+            it('should return undefined', () => {
+              expect(revision).to.not.be.ok;
+            });
+          });
+
+          describe('when the revision exists', () => {
+            beforeEach(async () => {
+              stubResolves(svn.log, {
+                revision: 100,
+                author: 'developer@company.com',
+                date: new Date('2012-08-15T15:14:57.365Z'),
+                message: 'message',
+                changes: [{
+                  action: ACTION.ADD,
+                  path: '/new-path',
+                  kind: NODE_KIND.DIRECTORY,
+                }, {
+                  action: ACTION.ADD,
+                  path: '/moved-to-path',
+                  copyFromPath: '/moved-from-path',
+                  copyFromRevision: 75,
+                  kind: NODE_KIND.UNSET,
+                }],
+              });
+              stubResolves(svn.info, {
+                path: '/move-to-path',
+                url: 'http://path/to/repos/moved-to-path',
+                relativeUrl: '^/moved-to-path',
+                repositoryRoot: 'http://path/to/repos',
+                repositoryUuid: 'UUID-UUID-UUID',
+                revision: 100,
+                nodeKind: NODE_KIND.DIRECTORY,
+                lastChangedAuthor: 'developer@company.com',
+                lastChangedRev: 100,
+                lastChangedDate: new Date('2012-08-15T15:14:57.365Z'),
+              });
+              stubResolves(svn.diffProps, {
+                '/path/to/directory1': {
+                  'svn:externals': {
+                    added: {
+                      name6: {
+                        url: 'url6',
+                        revision: 234,
+                      },
+                    },
+                    deleted: {
+                      name3: 'url3',
+                    },
+                    modified: {
+                      name1: 'url1',
+                    },
+                  },
+                },
+                '/path/to/directory2': {
+                  'svn:externals': {
+                    added: {
+                      name5: 'url5',
+                    },
+                    deleted: {
+                      name4: {
+                        url: 'url4',
+                        revision: 123,
+                      },
+                    },
+                    modified: {
+                    },
+                  },
+                },
+              });
+              revision = await svn.revision({
+                repository,
+                revision: 100,
+              });
+            });
+
+            it('should get the log', () => {
+              svn.log.should.have.been.calledWith({
+                repository,
+                revision: 100,
+              });
+            });
+
+            it('should get the info for changes without kind', () => {
+              svn.info.should.have.been.calledWith({
+                repository,
+                path: '/moved-to-path',
+                revision: 100,
+              });
+            });
+
+            it('should get the diffProps', () => {
+              svn.diffProps.should.have.been.calledWith({
+                repository,
+                revision: 100,
+              });
+            });
+
+            it('should compile the revision', () => {
+              revision.should.eql({
+                revision: 100,
+                author: 'developer@company.com',
+                date: new Date('2012-08-15T15:14:57.365Z'),
+                message: 'message',
+                changes: {
+                  paths: [{
+                    action: ACTION.ADD,
+                    path: '/new-path',
+                    kind: NODE_KIND.DIRECTORY,
+                  }, {
+                    action: ACTION.ADD,
+                    path: '/moved-to-path',
+                    copyFromPath: '/moved-from-path',
+                    copyFromRevision: 75,
+                    kind: NODE_KIND.DIRECTORY,
+                  }],
+                  externals: [{
+                    action: ACTION.ADD,
+                    path: '/path/to/directory1/name6',
+                    url: 'url6',
+                    revision: 234,
+                  }, {
+                    action: ACTION.DELETE,
+                    path: '/path/to/directory1/name3',
+                    url: 'url3',
+                    revision: undefined,
+                  }, {
+                    action: ACTION.MODIFY,
+                    path: '/path/to/directory1/name1',
+                    url: 'url1',
+                    revision: undefined,
+                  }, {
+                    action: ACTION.ADD,
+                    path: '/path/to/directory2/name5',
+                    url: 'url5',
+                    revision: undefined,
+                  }, {
+                    action: ACTION.DELETE,
+                    path: '/path/to/directory2/name4',
+                    url: 'url4',
+                    revision: 123,
+                  }],
+                },
+              });
+            });
           });
         });
       });

@@ -14,6 +14,7 @@ export const DEFAULT_USE_PROMPT_FILE = false;
 export const DEFAULT_NAME = APPLICATION_NAME;
 export const DEFAULT_EMAIL = `importer@${APPLICATION_NAME}.com`;
 export const STATE_FILE = 'state.json';
+export const AUTHORS_FILE = 'authors.json';
 export const IMPORTED_DESCRIPTOR_FILE = `${APPLICATION_NAME}.json`;
 export const LOG_FILE = 'log.json';
 export const PROMPT_FILE = 'prompts.json';
@@ -38,3 +39,5 @@ export const promptProjectRemote = (url) => `Enter the git remote URL for ${url}
 export const promptConfirmNonEmpty = (path) => `${path} is not an empty directory, are you sure you wish to run ${APPLICATION_NAME} here`;
 export const promptConfirmOverwriteProject = (path) => `${path} will be removed and overwritten if it exists, are you sure you wish to continue`;
 export const promptConfirmForcePush = (remote) => `${remote} will be overwritten with a force push, are you sure you wish to continue`;
+export const promptAuthorName = (author) => `Enter the name for SVN author: ${author}`;
+export const promptAuthorEmail = (author) => `Enter the email for SVN author: ${author}`;

@@ -5,6 +5,7 @@ import Project from '../../../../src/gitify/state/project';
 import workingDirectory from '../../../../src/gitify/working-directory';
 import svn from '../../../../src/gitify/svn';
 import prompt from '../../../../src/gitify/prompt';
+import authors from '../../../../src/gitify/state/authors';
 import {
   join,
 } from 'path';
@@ -24,6 +25,7 @@ import {
 const url = 'url';
 const incorrectUrl = 'incorrectUrl';
 const uuid = 'uuid';
+const author = 'author';
 const name = 'name';
 const email = 'email';
 const date = 'date';
@@ -48,7 +50,7 @@ const info = {
   repositoryRoot: url,
   repositoryUuid: uuid,
   lastChangedDate: date,
-  lastChangedAuthor: `${name} <${email}>`,
+  lastChangedAuthor: author,
 };
 
 const project = createInstance(Project, {
@@ -70,6 +72,7 @@ describe('src', () => {
           );
           sinon.stub(svn, 'info').resolves(info);
           sinon.stub(prompt, 'confirm');
+          sinon.stub(authors, 'get');
           stubResolves(FakeProject.create, project);
           stubReturns(FakeProject, project);
         });
@@ -78,6 +81,7 @@ describe('src', () => {
           svn.revision.restore();
           svn.info.restore();
           prompt.confirm.restore();
+          authors.get.restore();
         });
 
         describe('create', () => {
@@ -145,10 +149,18 @@ describe('src', () => {
 
             describe('and then initProject', () => {
               beforeEach(async () => {
+                stubResolves(authors.get, {
+                  name,
+                  email,
+                });
                 await svnRepository.initProject();
               });
 
-              it('should create the project', async () => {
+              it('should get the author data', () => {
+                authors.get.should.have.been.calledWith(author);
+              });
+
+              it('should create the project', () => {
                 checkCreated(FakeProject, {
                   svnUrl: url,
                   revision: 0,

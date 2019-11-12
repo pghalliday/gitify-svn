@@ -6,6 +6,7 @@ import {
   nodeKindTranslator,
   dateTranslator,
   intTranslator,
+  boolTranslator,
   schemaMap,
   schemaSingleEntryList,
   schemaValue,
@@ -40,6 +41,16 @@ const pathField = schemaValue({
   field: 'path',
 });
 
+const propMods = schemaValue({
+  field: 'propMods',
+  translator: boolTranslator,
+});
+
+const textMods = schemaValue({
+  field: 'textMods',
+  translator: boolTranslator,
+});
+
 const copyFromPath = schemaValue({
   field: 'copyFromPath',
 });
@@ -60,6 +71,24 @@ const action = schemaValue({
 });
 
 const pathAttributes = schemaTest([{
+  test: (data) => data['prop-mods'] && data['copyfrom-path'],
+  schema: schemaMap({
+    'prop-mods': propMods,
+    'text-mods': textMods,
+    'copyfrom-path': copyFromPath,
+    'copyfrom-rev': copyFromRevision,
+    kind,
+    action,
+  }),
+}, {
+  test: (data) => data['prop-mods'],
+  schema: schemaMap({
+    'prop-mods': propMods,
+    'text-mods': textMods,
+    kind,
+    action,
+  }),
+}, {
   test: (data) => data['copyfrom-path'],
   schema: schemaMap({
     'copyfrom-path': copyFromPath,

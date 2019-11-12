@@ -12,3 +12,30 @@ V 27
 2019-11-08T23:39:19.175584Z
 PROPS-END
 
+Revision-number: 1
+Prop-content-length: 118
+Content-length: 118
+
+K 10
+svn:author
+V 5
+admin
+K 8
+svn:date
+V 27
+2019-11-12T12:59:48.432725Z
+K 7
+svn:log
+V 18
+add a trunk folder
+PROPS-END
+
+Node-path: trunk
+Node-kind: dir
+Node-action: add
+Prop-content-length: 10
+Content-length: 10
+
+PROPS-END
+
+

@@ -157,10 +157,14 @@ export const VALID_LOG = `
    action="D">/replaced-from-path</path>
 <path
    kind="dir"
+   prop-mods="true"
+   text-mods="false"
    copyfrom-path="/moved-from-path"
    copyfrom-rev="75"
    action="A">/moved-to-path</path>
 <path
+   prop-mods="true"
+   text-mods="false"
    kind="dir"
    action="D">/moved-from-path</path>
 <path
@@ -198,10 +202,14 @@ export const PARSED_VALID_LOG = {
   }, {
     action: ACTION.ADD,
     path: '/moved-to-path',
+    propMods: true,
+    textMods: false,
     kind: NODE_KIND.DIRECTORY,
     copyFromPath: '/moved-from-path',
     copyFromRevision: 75,
   }, {
+    propMods: true,
+    textMods: false,
     action: ACTION.DELETE,
     path: '/moved-from-path',
     kind: NODE_KIND.DIRECTORY,

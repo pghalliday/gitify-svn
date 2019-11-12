@@ -5,6 +5,18 @@ import loggerFactory from '../logger';
 
 const logger = loggerFactory.create(__filename);
 
+export class BinaryError extends Error {
+  constructor({
+    message,
+    code,
+    output,
+  }) {
+    super(`Binary: ${message}`);
+    this.code = code;
+    this.output = output;
+  }
+}
+
 export default class Binary {
   constructor({
     binary,
@@ -36,7 +48,11 @@ export default class Binary {
         if (code === 0) {
           resolve(output);
         } else {
-          reject(new Error(`Exited with code: ${code}\nOutput:\n\n${output}`));
+          reject(new BinaryError({
+            message: `Exited with code: ${code}\nOutput:\n\n${output}`,
+            code,
+            output,
+          }));
         }
       });
       child.on('error', (error) => {

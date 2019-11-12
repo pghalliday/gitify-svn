@@ -1,4 +1,12 @@
 import {
+  reduce,
+  forEach,
+  map,
+} from 'lodash';
+import {
+  join,
+} from 'path';
+import {
   parse as parseInfo,
 } from './info';
 import {
@@ -16,8 +24,14 @@ import loggerFactory from '../../logger';
 import Binary from '../binary';
 
 const logger = loggerFactory.create(__filename);
+const NO_SUCH_REVISION_REGEX = RegExp('svn: E160006: No such revision');
 
 export {
+  ACTION,
+  NODE_KIND,
+} from './lib/shared';
+
+import {
   ACTION,
   NODE_KIND,
 } from './lib/shared';
@@ -116,7 +130,76 @@ export function svnFactory({
     }
 
     async revision({repository, revision}) {
-      throw new Error('Svn: revision: not yet implemented');
+      let log;
+      try {
+        log = await this.log({
+          repository,
+          revision,
+        });
+      } catch (error) {
+        if (error.output && NO_SUCH_REVISION_REGEX.test(error.output)) {
+          return;
+        } else {
+          throw error;
+        }
+      }
+
+      const diffProps = await this.diffProps({
+        repository,
+        revision,
+      });
+      const propChanges = reduce(diffProps, (propChanges, properties, path) => {
+        forEach(properties, (changes, property) => {
+          switch (property) {
+            case 'svn:externals':
+              const convertExternals = (changes, action) => map(
+                  changes,
+                  (target, name) => ({
+                    action,
+                    path: join(path, name),
+                    url: target.url || target,
+                    revision: target.revision,
+                  }),
+              );
+              propChanges.externals = propChanges.externals.concat(
+                  convertExternals(changes.added, ACTION.ADD)
+              );
+              propChanges.externals = propChanges.externals.concat(
+                  convertExternals(changes.deleted, ACTION.DELETE)
+              );
+              propChanges.externals = propChanges.externals.concat(
+                  convertExternals(changes.modified, ACTION.MODIFY)
+              );
+              break;
+            // istanbul ignore next
+            default:
+              throw new Error(`Unhandled property: ${property}`);
+          }
+        });
+        return propChanges;
+      }, {
+        externals: [],
+      });
+      const ret = {
+        revision: log.revision,
+        author: log.author,
+        date: log.date,
+        message: log.message,
+        changes: {
+          paths: await Promise.all(log.changes.map(async (change) => {
+            if (change.kind !== NODE_KIND.UNSET) return change;
+            const info = await this.info({
+              repository,
+              path: change.path,
+              revision,
+            });
+            change.kind = info.nodeKind;
+            return change;
+          })),
+          externals: propChanges.externals,
+        },
+      };
+      return ret;
     }
   };
 }

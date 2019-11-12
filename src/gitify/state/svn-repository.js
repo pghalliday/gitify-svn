@@ -1,9 +1,7 @@
 import {
   join,
 } from 'path';
-import {
-  parseAuthor,
-} from './lib/utils';
+import authors from './authors';
 import {
   REPOSITORIES_DIR,
   promptConfirmRoot,
@@ -91,7 +89,7 @@ export function svnRepositoryFactory({
 
     async initProject() {
       const date = this.info.lastChangedDate;
-      const {name, email} = parseAuthor(this.info.lastChangedAuthor);
+      const {name, email} = await authors.get(this.info.lastChangedAuthor);
       this.project = await Project.create({
         svnUrl: this.url,
         revision: this.last,

@@ -1,7 +1,6 @@
 import {
   importObject,
   exportObject,
-  parseAuthor,
 } from '../../../../../src/gitify/state/lib/utils';
 
 class MyClass {
@@ -48,25 +47,6 @@ describe('src', () => {
                 exported: {
                   param: 'param data',
                 },
-              });
-            });
-          });
-
-          describe('parseAuthor', () => {
-            it('should handle undefined', () => {
-              parseAuthor().should.eql({});
-            });
-
-            it('should handle name only', () => {
-              parseAuthor(' my name ').should.eql({
-                name: 'my name',
-              });
-            });
-
-            it('should handle name and email', () => {
-              parseAuthor(' my name < name@email.com > ').should.eql({
-                name: 'my name',
-                email: 'name@email.com',
               });
             });
           });

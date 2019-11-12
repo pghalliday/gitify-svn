@@ -36,6 +36,17 @@ export const nodeKindTranslator = (value) => {
 };
 export const dateTranslator = (value) => new Date(value);
 export const intTranslator = (value) => parseInt(value);
+export const boolTranslator = (value) => {
+  switch (value) {
+    case 'true':
+      return true;
+    case 'false':
+      return false;
+    // istanbul ignore next
+    default:
+      throw new Error('invalid boolean value');
+  }
+};
 
 const checkArray = (data) => {
   // istanbul ignore next
