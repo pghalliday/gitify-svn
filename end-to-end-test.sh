@@ -24,7 +24,10 @@ done
 # first SVN repo in the list
 rm -rf working
 mkdir working
-cp saved/prompts.json working/
+
+if [ -e saved/prompts.json ]; then
+  cp saved/prompts.json working/
+fi
 ../bin/index.js -l debug -q -u admin -p password -r http://localhost/svn/${SVN_REPOS[0]} working
 
 # check the Git repository checksums

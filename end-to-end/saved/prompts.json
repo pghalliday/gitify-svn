@@ -1,18 +1,34 @@
 [
   {
-    "question": "working is not an empty directory, are you sure you wish to run gitify-svn here",
+    "question": ". is not an empty directory, are you sure you wish to run gitify-svn here",
     "response": true
+  },
+  {
+    "question": "Enter the name for SVN author: ",
+    "response": "gitify-svn"
+  },
+  {
+    "question": "Enter the email for SVN author: ",
+    "response": "importer@gitify-svn.com"
   },
   {
     "question": "Enter the git remote URL for http://localhost/svn/test1",
     "response": "git@localhost:/srv/git/test1.git"
   },
   {
-    "question": "working/repositories/1087972d-d0c7-4fca-a6f8-b79b375b1fc0 will be removed and overwritten if it exists, are you sure you wish to continue",
+    "question": "repositories/1087972d-d0c7-4fca-a6f8-b79b375b1fc0 will be removed and overwritten if it exists, are you sure you wish to continue",
     "response": true
   },
   {
     "question": "git@localhost:/srv/git/test1.git will be overwritten with a force push, are you sure you wish to continue",
     "response": true
+  },
+  {
+    "question": "Enter the name for SVN author: admin",
+    "response": "A Developer"
+  },
+  {
+    "question": "Enter the email for SVN author: admin",
+    "response": "adeveloper@email.com"
   }
 ]

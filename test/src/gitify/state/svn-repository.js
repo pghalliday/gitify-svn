@@ -225,7 +225,7 @@ describe('src', () => {
               });
             });
 
-            describe('and then processNext', () => {
+            describe.skip('and then processNext', () => {
               beforeEach(async () => {
                 await svnRepository.processNext();
               });

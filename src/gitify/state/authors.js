@@ -2,8 +2,6 @@ import workingDirectory from '../working-directory';
 import prompt from '../prompt';
 import parse from './lib/parse';
 import {
-  DEFAULT_NAME,
-  DEFAULT_EMAIL,
   AUTHORS_FILE,
   promptAuthorName,
   promptAuthorEmail,
@@ -33,13 +31,7 @@ export class Authors {
     }
   }
 
-  async get(author) {
-    if (!author) {
-      return {
-        name: DEFAULT_NAME,
-        email: DEFAULT_EMAIL,
-      };
-    }
+  async get(author = '') {
     let data = this.list[author];
     if (data) {
       return data;

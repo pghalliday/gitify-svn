@@ -1,23 +1,22 @@
 import {
   gitFactory,
-} from '../../../src/gitify/git';
-import Binary from '../../../src/gitify/binary';
-import prompt from '../../../src/gitify/prompt';
+} from '../../../../src/gitify/git';
+import utils from '../../../../src/gitify/git/lib/utils';
+import Binary from '../../../../src/gitify/binary';
+import prompt from '../../../../src/gitify/prompt';
 import {
   IMPORTED_DESCRIPTOR_FILE,
   INITIAL_COMMIT_MESSAGE,
   promptConfirmOverwriteProject,
   promptConfirmForcePush,
-  DEFAULT_NAME,
-  DEFAULT_EMAIL,
-} from '../../../src/constants';
+} from '../../../../src/constants';
 import {
   createInstance,
   createConstructor,
   checkConstructed,
   stubResolves,
   stubReturns,
-} from '../../helpers/utils';
+} from '../../../helpers/utils';
 import {
   join,
 } from 'path';
@@ -25,7 +24,7 @@ import {
   FsMock,
   FS_DIRECTORY,
   FS_FILE,
-} from '../../mocks/fs';
+} from '../../../mocks/fs';
 
 const bin = 'bin';
 const root = 'root';
@@ -34,14 +33,15 @@ const path = 'path';
 const name = 'name';
 const email = 'email';
 const date = 'date';
+const message = 'message';
 const remote = 'remote';
 const commit = 'commit';
 const importedDescriptor = {
   data: 'data',
 };
-const env = ({
-  name = DEFAULT_NAME,
-  email = DEFAULT_EMAIL,
+const commitEnv = ({
+  name,
+  email,
   date,
 }) => ({
   ...process.env,
@@ -86,6 +86,100 @@ describe('src', () => {
           });
         });
 
+        describe('getCommit', () => {
+          let ret;
+
+          beforeEach(async () => {
+            stubResolves(binary.exec, `${commit}\n`);
+            ret = await git.getCommit({
+              path,
+            });
+          });
+
+          it('should return the commit', () => {
+            binary.exec.should.have.been.calledWith([
+              'rev-parse',
+              'HEAD',
+            ], {
+              cwd: join(root, path),
+            });
+            ret.should.eql(commit);
+          });
+        });
+
+        describe('addAll', () => {
+          beforeEach(async () => {
+            stubResolves(binary.exec, undefined);
+            await git.addAll({
+              path,
+            });
+          });
+
+          it('should add all changes', () => {
+            binary.exec.should.have.been.calledWith([
+              'add',
+              '-A',
+            ], {
+              cwd: join(root, path),
+            });
+          });
+        });
+
+        describe('commit', () => {
+          let ret;
+
+          beforeEach(async () => {
+            stubResolves(binary.exec, undefined);
+            sinon.stub(git, 'getCommit');
+            stubResolves(git.getCommit, commit);
+            ret = await git.commit({
+              path,
+              name,
+              email,
+              date,
+              message,
+            });
+          });
+
+          afterEach(() => {
+            git.getCommit.restore();
+          });
+
+          it('should commit changes and return the commit ref', () => {
+            binary.exec.should.have.been.calledWith([
+              'commit',
+              '-m',
+              message,
+            ], {
+              cwd: join(root, path),
+              env: commitEnv({
+                name,
+                email,
+                date,
+              }),
+            });
+            ret.should.eql(commit);
+          });
+        });
+
+        describe('pushAll', () => {
+          beforeEach(async () => {
+            stubResolves(binary.exec, undefined);
+            await git.pushAll({
+              path,
+            });
+          });
+
+          it('should push all changes', () => {
+            binary.exec.should.have.been.calledWith([
+              'push',
+              '--all',
+            ], {
+              cwd: join(root, path),
+            });
+          });
+        });
+
         describe('initRepository', () => {
           beforeEach(async () => {
             stubResolves(binary.exec, [
@@ -99,7 +193,6 @@ describe('src', () => {
           it('should initialise a git repository', () => {
             binary.exec.should.have.been.calledWith(['init'], {
               cwd: join(root, path),
-              env: env({}),
             });
           });
         });
@@ -119,12 +212,16 @@ describe('src', () => {
               },
             });
             sinon.stub(git, 'initRepository');
+            sinon.stub(git, 'addAll');
+            sinon.stub(git, 'commit');
             sinon.stub(prompt, 'confirm');
           });
 
           afterEach(() => {
             fsMock.restore();
             git.initRepository.restore();
+            git.addAll.restore();
+            git.commit.restore();
             prompt.confirm.restore();
           });
 
@@ -135,12 +232,11 @@ describe('src', () => {
                 true,
               ]);
               stubResolves(git.initRepository, undefined);
+              stubResolves(git.addAll, undefined);
+              stubResolves(git.commit, commit);
               stubResolves(binary.exec, [
                 undefined,
                 undefined,
-                undefined,
-                undefined,
-                `${commit}\n`,
               ]);
               response = await git.pushNewRepository({
                 remote,
@@ -178,7 +274,7 @@ describe('src', () => {
 
             it('should init a git repository', () => {
               git.initRepository.should.have.been.calledWith({
-                path: path,
+                path,
               });
             });
 
@@ -189,52 +285,34 @@ describe('src', () => {
             });
 
             it('should git add the imported descriptor file', () => {
-              binary.exec.getCall(0).should.have.been.calledWith([
-                'add',
-                IMPORTED_DESCRIPTOR_FILE,
-              ], {
-                cwd: join(root, path),
-                env: env({
-                  name,
-                  email,
-                  date,
-                }),
+              git.addAll.should.have.been.calledWith({
+                path,
               });
             });
 
             it('should make the initial commit', () => {
-              binary.exec.getCall(1).should.have.been.calledWith([
-                'commit',
-                '-m',
-                INITIAL_COMMIT_MESSAGE,
-              ], {
-                cwd: join(root, path),
-                env: env({
-                  name,
-                  email,
-                  date,
-                }),
+              git.commit.should.have.been.calledWith({
+                message: INITIAL_COMMIT_MESSAGE,
+                name,
+                email,
+                date,
+                path,
               });
             });
 
             it('should set the remote', () => {
-              binary.exec.getCall(2).should.have.been.calledWith([
+              binary.exec.getCall(0).should.have.been.calledWith([
                 'remote',
                 'add',
                 'origin',
                 remote,
               ], {
                 cwd: join(root, path),
-                env: env({
-                  name,
-                  email,
-                  date,
-                }),
               });
             });
 
             it('should force push', () => {
-              binary.exec.getCall(3).should.have.been.calledWith([
+              binary.exec.getCall(1).should.have.been.calledWith([
                 'push',
                 '--force',
                 '--set-upstream',
@@ -242,26 +320,10 @@ describe('src', () => {
                 'master',
               ], {
                 cwd: join(root, path),
-                env: env({
-                  name,
-                  email,
-                  date,
-                }),
               });
             });
 
             it('should return the commit', () => {
-              binary.exec.getCall(4).should.have.been.calledWith([
-                'rev-parse',
-                'master',
-              ], {
-                cwd: join(root, path),
-                env: env({
-                  name,
-                  email,
-                  date,
-                }),
-              });
               response.should.eql(commit);
             });
           });
@@ -272,6 +334,8 @@ describe('src', () => {
                 false,
               ]);
               stubResolves(git.initRepository, []);
+              stubResolves(git.addAll, []);
+              stubResolves(git.commit, []);
               stubResolves(binary.exec, []);
             });
 
@@ -294,6 +358,8 @@ describe('src', () => {
                 false,
               ]);
               stubResolves(git.initRepository, []);
+              stubResolves(git.addAll, []);
+              stubResolves(git.commit, []);
               stubResolves(binary.exec, []);
             });
 
@@ -365,11 +431,6 @@ describe('src', () => {
               path,
             ], {
               cwd: join(root, parent),
-              env: env({
-                name,
-                email,
-                date,
-              }),
             });
           });
 
@@ -381,16 +442,38 @@ describe('src', () => {
               '--recursive',
             ], {
               cwd: join(root, parent),
-              env: env({
-                name,
-                email,
-                date,
-              }),
             });
           });
 
           it('should return the commit', () => {
             response.should.eql(commit);
+          });
+        });
+
+        describe('createDirectory', () => {
+          let fsMock;
+
+          beforeEach(async () => {
+            sinon.stub(utils, 'checkEmpty');
+            fsMock = new FsMock({
+            });
+            await git.createDirectory({
+              path,
+            });
+          });
+
+          afterEach(() => {
+            utils.checkEmpty.restore();
+            fsMock.restore();
+          });
+
+          it('should create the directory', () => {
+            fsMock.getEntry(join(root, path)).type.should.eql(FS_DIRECTORY);
+          });
+
+          // eslint-disable-next-line max-len
+          it('should check if the directory is empty to create a .gitkeep file', () => {
+            utils.checkEmpty.should.have.been.calledWith(join(root, path));
           });
         });
       });

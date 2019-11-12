@@ -19,11 +19,16 @@ const email = 'email';
 const date = 'date';
 const remote = 'remote';
 const commit = 'commit';
+const revisionMap = {
+  0: {
+    master: commit,
+  },
+};
 const exported = {
   parent,
   path,
   remote,
-  commit,
+  revisionMap,
 };
 
 describe('src', () => {
@@ -86,7 +91,7 @@ describe('src', () => {
             project.parent.should.eql(parent);
             project.path.should.eql(path);
             project.remote.should.eql(remote);
-            project.commit.should.eql(commit);
+            project.revisionMap.should.eql(revisionMap);
           });
         });
 
@@ -103,7 +108,7 @@ describe('src', () => {
             project.parent.should.eql(parent);
             project.path.should.eql(path);
             project.remote.should.eql(remote);
-            project.commit.should.eql(commit);
+            project.revisionMap.should.eql(revisionMap);
           });
 
           describe('export', () => {

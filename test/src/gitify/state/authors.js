@@ -5,8 +5,6 @@ import workingDirectory from '../../../../src/gitify/working-directory';
 import prompt from '../../../../src/gitify/prompt';
 import parse from '../../../../src/gitify/state/lib/parse';
 import {
-  DEFAULT_NAME,
-  DEFAULT_EMAIL,
   AUTHORS_FILE,
   promptAuthorName,
   promptAuthorEmail,
@@ -139,21 +137,20 @@ describe('src', () => {
 
             describe('then get with undefined', () => {
               beforeEach(async () => {
-                stubReturns(parse.author, []);
-                stubResolves(prompt.input, []);
+                stubReturns(parse.author, defaultAuthorsData);
+                stubResolves(prompt.input, [
+                  name,
+                  email,
+                ]);
                 data = await authors.get();
               });
 
-              it('should return the default author data', () => {
+              it('should default to author text with empty string', () => {
+                parse.author.should.have.been.calledWith('');
                 data.should.eql({
-                  name: DEFAULT_NAME,
-                  email: DEFAULT_EMAIL,
+                  name,
+                  email,
                 });
-              });
-
-              it('should not write the authors file', () => {
-                expect(fsMock.getEntry(join(workingDir, AUTHORS_FILE)))
-                    .to.not.be.ok;
               });
             });
 

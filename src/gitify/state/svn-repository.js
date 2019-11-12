@@ -11,7 +11,10 @@ import {
   importObject,
 } from './lib/utils';
 import loggerFactory from '../../logger';
-import svn from '../svn';
+import svn, {
+  NODE_KIND,
+  ACTION,
+} from '../svn';
 import prompt from '../prompt';
 import Project from './project';
 
@@ -111,10 +114,48 @@ export function svnRepositoryFactory({
       return this._next;
     }
 
+    async _processDirectoryChange(change) {
+      switch (change.action) {
+        case ACTION.ADD:
+          await this.project.addDirectory(change.path);
+          break;
+        default:
+          throw new Error(`action not implemented: ${change.action}`);
+      }
+    }
+
+    async _processPathChanges(changes) {
+      await Promise.all(changes.map(async (change) => {
+        switch (change.kind) {
+          case NODE_KIND.DIRECTORY:
+            await this._processDirectoryChange(change);
+            break;
+          default:
+            throw new Error(`kind not implemented: ${change.kind}`);
+        }
+      }));
+    }
+
     async processNext() {
       logger.info(`${this.url}: Processing revision: ${this._next.revision}`);
+      logger.debug(this._next);
+      const author = await authors.get(this._next.author);
 
-      // TODO: apply the revision
+      // TODO: other stuff
+
+      // apply path changes
+      await this._processPathChanges(this._next.changes.paths);
+
+      // TODO: other stuff
+
+      // commit changes
+      await this.project.commit({
+        revision: this._next.revision,
+        name: author.name,
+        email: author.email,
+        date: this._next.date,
+        message: this._next.message,
+      });
 
       this.last = this._next.revision;
       delete this._next;

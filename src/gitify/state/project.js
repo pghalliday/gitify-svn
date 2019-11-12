@@ -4,6 +4,9 @@ import prompt from '../prompt';
 import {
   promptProjectRemote,
 } from '../../constants';
+import {
+  join,
+} from 'path';
 
 const logger = loggerFactory.create(__filename);
 
@@ -54,7 +57,7 @@ export function projectFactory({
       this.parent = exported.parent;
       this.path = exported.path;
       this.remote = exported.remote;
-      this.commit = exported.commit;
+      this.revisionMap = exported.revisionMap;
     }
 
     export() {
@@ -63,7 +66,7 @@ export function projectFactory({
         parent: this.parent,
         path: this.path,
         remote: this.remote,
-        commit: this.commit,
+        revisionMap: this.revisionMap,
       };
       logger.debug(exported);
       return exported;
@@ -77,17 +80,59 @@ export function projectFactory({
       date,
     }) {
       this.remote = await prompt.input(promptProjectRemote(svnUrl));
-      this.commit = await git.newSubmodule({
-        remote: this.remote,
-        parent: this.parent,
-        path: this.path,
-        name,
-        email,
-        date,
-        importedDescriptor: {
-          svnUrl,
-          revision,
+      this.revisionMap = {
+        0: {
+          master: await git.newSubmodule({
+            remote: this.remote,
+            parent: this.parent,
+            path: this.path,
+            name,
+            email,
+            date,
+            importedDescriptor: {
+              svnUrl,
+              revision,
+            },
+          }),
         },
+      };
+    }
+
+    async addDirectory(path) {
+      // TODO: deal with branches
+      // TODO: check if path is in a submodule
+      // make path relative
+      path = join(this.parent, this.path, `.${path}`);
+      await git.createDirectory({
+        path,
+      });
+    }
+
+    async commit({
+      revision,
+      name,
+      email,
+      date,
+      message,
+    }) {
+      // TODO: deal with branches
+      // TODO: commit source submodules
+      // TODO: update destination submodules in the right order
+      const path = join(this.parent, this.path);
+      await git.addAll({
+        path,
+      });
+      this.revisionMap[revision] = {
+        master: await git.commit({
+          path,
+          name,
+          email,
+          date,
+          message,
+        }),
+      };
+      await git.pushAll({
+        path,
       });
     }
   };

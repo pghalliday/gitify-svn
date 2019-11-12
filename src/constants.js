@@ -16,6 +16,7 @@ export const DEFAULT_EMAIL = `importer@${APPLICATION_NAME}.com`;
 export const STATE_FILE = 'state.json';
 export const AUTHORS_FILE = 'authors.json';
 export const IMPORTED_DESCRIPTOR_FILE = `${APPLICATION_NAME}.json`;
+export const GIT_KEEP_FILE = '.gitkeep';
 export const LOG_FILE = 'log.json';
 export const PROMPT_FILE = 'prompts.json';
 export const README_FILE = 'README.md';

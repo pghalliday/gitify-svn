@@ -1,4 +1,4 @@
-import Binary from './binary';
+import Binary from '../binary';
 import mkdirp from 'mkdirp';
 import rimraf from 'rimraf';
 import {
@@ -10,35 +10,30 @@ import {
 import {
   join,
 } from 'path';
-import prompt from './prompt';
-import loggerFactory from '../logger';
+import utils from './lib/utils';
+import prompt from '../prompt';
+import loggerFactory from '../../logger';
 import {
   IMPORTED_DESCRIPTOR_FILE,
   INITIAL_COMMIT_MESSAGE,
   promptConfirmOverwriteProject,
   promptConfirmForcePush,
-  DEFAULT_NAME,
-  DEFAULT_EMAIL,
-} from '../constants';
+} from '../../constants';
 
 const logger = loggerFactory.create(__filename);
 
-const execOptions = ({
-  cwd,
-  name = DEFAULT_NAME,
-  email = DEFAULT_EMAIL,
+const commitEnv = ({
+  name,
+  email,
   date,
 }) => ({
-  cwd,
-  env: {
-    ...process.env,
-    GIT_COMMITTER_NAME: name,
-    GIT_COMMITTER_EMAIL: email,
-    GIT_COMMITTER_DATE: date,
-    GIT_AUTHOR_NAME: name,
-    GIT_AUTHOR_EMAIL: email,
-    GIT_AUTHOR_DATE: date,
-  },
+  ...process.env,
+  GIT_COMMITTER_NAME: name,
+  GIT_COMMITTER_EMAIL: email,
+  GIT_COMMITTER_DATE: date,
+  GIT_AUTHOR_NAME: name,
+  GIT_AUTHOR_EMAIL: email,
+  GIT_AUTHOR_DATE: date,
 });
 
 export function gitFactory({
@@ -58,14 +53,75 @@ export function gitFactory({
       });
     }
 
+    _realPath(...path) {
+      return join(this.root, ...path);
+    }
+
+    async getCommit({
+      path,
+    }) {
+      return (await this.binary.exec([
+        'rev-parse',
+        'HEAD',
+      ], {
+        cwd: this._realPath(path),
+      })).trim();
+    }
+
+    async addAll({
+      path,
+    }) {
+      await this.binary.exec([
+        'add',
+        '-A',
+      ], {
+        cwd: this._realPath(path),
+      });
+    }
+
+    async commit({
+      path,
+      name,
+      email,
+      date,
+      message,
+    }) {
+      await this.binary.exec([
+        'commit',
+        '-m',
+        message,
+      ], {
+        cwd: this._realPath(path),
+        env: commitEnv({
+          name,
+          email,
+          date,
+        }),
+      });
+      return await this.getCommit({
+        path,
+      });
+    }
+
+    async pushAll({
+      path,
+    }) {
+      await this.binary.exec([
+        'push',
+        '--all',
+      ], {
+        cwd: this._realPath(path),
+      });
+    }
+
     async initRepository({
       path,
     }) {
       await this.binary.exec([
         'init',
-      ], execOptions({
-        cwd: join(this.root, path),
-      }));
+      ], {
+        cwd: this._realPath(path),
+      });
     }
 
     async pushNewRepository({
@@ -76,9 +132,9 @@ export function gitFactory({
       date,
       importedDescriptor,
     }) {
-      const subPath = join(this.root, path);
+      const realPath = this._realPath(path);
       const confirmOverwite = await prompt.confirm(
-          promptConfirmOverwriteProject(subPath),
+          promptConfirmOverwriteProject(realPath),
           false,
       );
       if (!confirmOverwite) {
@@ -91,18 +147,15 @@ export function gitFactory({
       if (!confirmForce) {
         throw new Error('User cancelled force push');
       }
-      await promisify(rimraf)(subPath);
+      await promisify(rimraf)(realPath);
       const importedDescriptorFile = join(
-          subPath,
+          realPath,
           IMPORTED_DESCRIPTOR_FILE,
       );
-      const options = execOptions({
-        cwd: subPath,
-        name,
-        email,
-        date,
-      });
-      await promisify(mkdirp)(subPath);
+      const options = {
+        cwd: realPath,
+      };
+      await promisify(mkdirp)(realPath);
       await this.initRepository({
         path,
       });
@@ -110,15 +163,16 @@ export function gitFactory({
           importedDescriptorFile,
           JSON.stringify(importedDescriptor, null, 2),
       );
-      await this.binary.exec([
-        'add',
-        IMPORTED_DESCRIPTOR_FILE,
-      ], options);
-      await this.binary.exec([
-        'commit',
-        '-m',
-        INITIAL_COMMIT_MESSAGE,
-      ], options);
+      await this.addAll({
+        path,
+      });
+      const commit = await this.commit({
+        message: INITIAL_COMMIT_MESSAGE,
+        path,
+        name,
+        email,
+        date,
+      });
       await this.binary.exec([
         'remote',
         'add',
@@ -132,10 +186,7 @@ export function gitFactory({
         'origin',
         'master',
       ], options);
-      return (await this.binary.exec([
-        'rev-parse',
-        'master',
-      ], options)).trim();
+      return commit;
     }
 
     async newSubmodule({
@@ -155,14 +206,11 @@ export function gitFactory({
         date,
         importedDescriptor,
       });
-      const parentPath = join(this.root, parent);
+      const parentPath = this._realPath(parent);
       const subPath = join(parentPath, path);
-      const options = execOptions({
+      const options = {
         cwd: parentPath,
-        name,
-        email,
-        date,
-      });
+      };
       await promisify(rimraf)(subPath);
       await this.binary.exec([
         'submodule',
@@ -177,6 +225,14 @@ export function gitFactory({
         '--recursive',
       ], options);
       return commit;
+    }
+
+    async createDirectory({
+      path,
+    }) {
+      path = this._realPath(path);
+      await promisify(mkdirp)(path);
+      await utils.checkEmpty(path);
     }
   };
 }
