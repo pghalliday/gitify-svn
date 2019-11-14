@@ -19,6 +19,9 @@ export const IMPORTED_DESCRIPTOR_FILE = `${APPLICATION_NAME}.json`;
 export const GIT_KEEP_FILE = '.gitkeep';
 export const LOG_FILE = 'log.json';
 export const PROMPT_FILE = 'prompts.json';
+export const unknownRevisionError = (revision) => `fatal: ambiguous argument '${revision}': unknown revision or path not in the working tree.`;
+export const branchExistsError = (branch) => `fatal: A branch named '${branch}' already exists.`;
+export const tagExistsError = (tag) => `fatal: tag '${tag}' already exists.`;
 export const README_FILE = 'README.md';
 export const USAGE_TEXT = `
 Usage: ${APPLICATION_NAME} [options] [<directory>] 
@@ -42,3 +45,4 @@ export const promptConfirmOverwriteProject = (path) => `${path} will be removed 
 export const promptConfirmForcePush = (remote) => `${remote} will be overwritten with a force push, are you sure you wish to continue`;
 export const promptAuthorName = (author) => `Enter the name for SVN author: ${author}`;
 export const promptAuthorEmail = (author) => `Enter the email for SVN author: ${author}`;
+export const promptConfirmReinit = (remote) => `${remote} is not an empty repository, would you like to reset the history before emptying it`;
