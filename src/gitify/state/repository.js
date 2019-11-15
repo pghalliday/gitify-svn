@@ -18,6 +18,7 @@ import {
   promptConfirmDeleteTag,
   promptConfirmRollbackTag,
   SVN_MODULES_FILE,
+  INITIAL_BRANCH,
 } from '../../constants';
 import {
   join,
@@ -37,7 +38,6 @@ const logger = loggerFactory.create(__filename);
 
 export default class Repository {
   static async create({
-    initialBranch,
     remote,
     ref,
     subPath,
@@ -95,7 +95,6 @@ export default class Repository {
   }
 
   async _init({
-    initialBranch,
     remote,
     ref,
     subPath,
@@ -109,15 +108,11 @@ export default class Repository {
         subPath,
       });
     } else {
-      await this._initNew({
-        initialBranch,
-      });
+      await this._initNew();
     }
   }
 
-  async _initNew({
-    initialBranch,
-  }) {
+  async _initNew() {
     logger.debug(`Initialising new repository: ${this.uuid}`);
     await this._clone();
     if (await git.isNotEmpty({
@@ -135,9 +130,9 @@ export default class Repository {
     logger.debug(`Commit and push an initialised repository: ${this.uuid}: ${initialBranch}`);
     this.refs.branches[initialBranch] = await git.pushEmpty({
       path: this._path,
-      initialBranch,
+      INITIAL_BRANCH,
     });
-    this._setCurrentBranch(initialBranch);
+    this._setCurrentBranch(INITIAL_BRANCH);
   }
 
   // NB. the commit refs in this new repository
@@ -393,7 +388,7 @@ export default class Repository {
     logger.debug(`Delete a file: ${this.uuid}: ${path}`);
     // make path relative
     path = join(this._path, `.${path}`);
-    await git.removeFile({
+    await git.deleteFile({
       path,
     });
   }
@@ -402,7 +397,7 @@ export default class Repository {
     logger.debug(`Add new directory: ${this.uuid}: ${path}`);
     // make path relative
     path = join(this._path, `.${path}`);
-    await git.createDirectory({
+    await git.addDirectory({
       path,
     });
   }
@@ -411,7 +406,7 @@ export default class Repository {
     logger.debug(`Delete directory: ${this.uuid}: ${path}`);
     // make path relative
     path = join(this._path, `.${path}`);
-    await git.removeDirectory({
+    await git.deleteDirectory({
       path,
     });
   }

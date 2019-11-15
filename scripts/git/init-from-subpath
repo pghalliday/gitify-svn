@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -e
+
+REPOPATH=$1
+ESCAPED_REPOPATH=$(printf %q "$REPOPATH")
+SUBPATH=$2
+ESCAPED_SUBPATH=$(printf %q "$SUBPATH")
+SOURCEURL=$3
+DESTURL=$3
+
+git clone $SOURCEURL $ESCAPED_REPOPATH
+cd $ESCAPED_REPOPATH
+git filter-branch --subdirectory-filter $ESCAPED_SUBPATH -- --all
+git remote set-url origin $DESTURL
