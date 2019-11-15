@@ -1,0 +1,10 @@
+#!/bin/bash
+
+set -e
+
+SUBPATH=$1
+ESCAPED_SUBPATH=$(printf %q "$SUBPATH")
+
+git submodule deinit -f $ESCAPED_SUBPATH
+git rm -f $ESCAPED_SUBPATH
+rm -rf .git/modules/$ESCAPED_SUBPATH

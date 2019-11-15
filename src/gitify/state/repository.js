@@ -1,12 +1,9 @@
 // TODO:
-//  - Delete directory
-//  - Write file
-//  - Delete file
+//  - Add submodule
+//  - Remove submodule
 //  - Add gitignore entry
 //  - delete gitignore entry
 //  - merge ref
-//  - Add submodule
-//  - Remove submodule
 //
 import loggerFactory from '../../logger';
 import uuidv1 from 'uuid/v1';
@@ -15,10 +12,26 @@ import git from '../git';
 import prompt from '../prompt';
 import {
   promptProjectRemote,
+  promptConfirmReinit,
+  promptConfirmDeleteBranch,
+  promptConfirmRollbackBranch,
+  promptConfirmDeleteTag,
+  promptConfirmRollbackTag,
+  SVN_MODULES_FILE,
 } from '../../constants';
 import {
   join,
 } from 'path';
+import {
+  stat,
+  readFile,
+} from 'fs';
+import {
+  promisify,
+} from 'util';
+import {
+  map,
+} from 'lodash';
 
 const logger = loggerFactory.create(__filename);
 
@@ -51,6 +64,11 @@ export default class Repository {
         tags: {},
         branches: {},
       };
+      this.submodules = {
+        tags: {},
+        branches: {},
+      };
+      this.branchesToDeleteFromRemote = {};
       this.tagsToDeleteFromRemote = {};
     }
   }
@@ -61,6 +79,7 @@ export default class Repository {
     this.uuid = exported.uuid;
     this.remote = exported.remote;
     this.refs = exported.refs;
+    this.submodules = exported.submodules;
   }
 
   export() {
@@ -69,6 +88,7 @@ export default class Repository {
       uuid: this.uuid,
       remote: this.remote,
       refs: this.refs,
+      submodules: this.submodules,
     };
     logger.debug(exported);
     return exported;
@@ -213,6 +233,10 @@ export default class Repository {
       ref,
     });
     this.refs.branches[name] = ref;
+    this.switchToBranch({
+      name,
+    });
+    this.submodules.branches[name] = await this._readSubmodules();
   }
 
   async switchToBranch({
@@ -230,7 +254,7 @@ export default class Repository {
       // state.
       // Confirm that this branch should be rolled back to
       // the saved ref.
-      if (prompt.confirm(promptRollbackBranch(name), false)) {
+      if (prompt.confirm(promptConfirmRollbackBranch(name), false)) {
         logger.debug(`Resetting branch: ${this.uuid}: ${name}`);
         await git.hardReset({
           path: this._path,
@@ -241,6 +265,25 @@ export default class Repository {
       }
     }
     this._setCurrentBranch(name);
+  }
+
+  async renameBranch({
+    name,
+    newName,
+  }) {
+    await git.renameBranch({
+      path: this._path,
+      name,
+      newName,
+      remote,
+    });
+    this.branchesToDeleteFromRemote[name] = true;
+    const branchRefs = this.refs.branches;
+    branchRefs[newName] = branchRefs[name];
+    delete branchRefs[name];
+    const branchSubmodules = this.submodules.branches;
+    branchSubmodules[newName] = branchSubmodules[name];
+    delete branchSubmodules[name];
   }
 
   async tag({
@@ -272,6 +315,10 @@ export default class Repository {
       name,
       ref,
     });
+    this.switchToTag({
+      name,
+    });
+    this.submodules.tags[name] = await this._readSubmodules();
   }
 
   async switchToTag({
@@ -289,7 +336,7 @@ export default class Repository {
       // state.
       // Confirm that this tag should be rolled back to
       // the saved ref.
-      if (prompt.confirm(promptRollbackTag(name), false)) {
+      if (prompt.confirm(promptConfirmRollbackTag(name), false)) {
         logger.debug(`Resetting tag: ${this.uuid}: ${name}`);
         await git.hardReset({
           path: this._path,
@@ -300,6 +347,25 @@ export default class Repository {
       }
     }
     this._setCurrentTag(name);
+  }
+
+  async renameTag({
+    name,
+    newName,
+  }) {
+    await git.renameTag({
+      path: this._path,
+      name,
+      newName,
+      remote,
+    });
+    this.tagsToDeleteFromRemote[name] = true;
+    const tagRefs = this.refs.tags;
+    tagRefs[newName] = tagRefs[name];
+    delete tagRefs[name];
+    const tagSubmodules = this.submodules.tags;
+    tagSubmodules[newName] = tagSubmodules[name];
+    delete tagSubmodules[name];
   }
 
   async _forceTag() {
@@ -313,11 +379,39 @@ export default class Repository {
     this.tagsToDeleteFromRemote[this._currentTag] = true;
   }
 
+  async writeFile(path, data) {
+    logger.debug(`Write/overwrite a file: ${this.uuid}: ${path}`);
+    // make path relative
+    path = join(this._path, `.${path}`);
+    await git.writeFile({
+      path,
+      data,
+    });
+  }
+
+  async deleteFile(path) {
+    logger.debug(`Delete a file: ${this.uuid}: ${path}`);
+    // make path relative
+    path = join(this._path, `.${path}`);
+    await git.removeFile({
+      path,
+    });
+  }
+
   async addDirectory(path) {
     logger.debug(`Add new directory: ${this.uuid}: ${path}`);
     // make path relative
     path = join(this._path, `.${path}`);
     await git.createDirectory({
+      path,
+    });
+  }
+
+  async deleteDirectory(path) {
+    logger.debug(`Delete directory: ${this.uuid}: ${path}`);
+    // make path relative
+    path = join(this._path, `.${path}`);
+    await git.removeDirectory({
       path,
     });
   }
@@ -346,18 +440,34 @@ export default class Repository {
     return ref;
   }
 
+  async _deleteRefsFromRemote(refs, deleteMethod) {
+    await Promise.all(
+        map(this[refs], async (flag, name) => {
+          if (flag) {
+            await git[deleteMethod]({
+              path: this._path,
+              name,
+            });
+          }
+        })
+    );
+    this[refs] = {};
+  }
+
   async push() {
     // delete the tags flagged for removal
     // from the remote
-    await Promise.all(
-        Object.keys(this.tagsToDeleteFromRemote).map(async (name) => {
-          logger.debug(`Delete old tag from remote: ${this.uuid}: ${name}`);
-          await git.deleteTagFromRemote({
-            path: this._path,
-            name,
-          });
-          delete this.tagsToDeleteFromRemote[name];
-        })
+    logger.debug(`Delete old tags from remote: ${this.uuid}`);
+    await this._deleteRefsFromRemote(
+        'tagsToDeleteFromRemote',
+        'deleteTagFromRemote'
+    );
+    // delete the branches flagged for removal
+    // from the remote
+    logger.debug(`Delete old branches from remote: ${this.uuid}`);
+    await this._deleteRefsFromRemote(
+        'branchesToDeleteFromRemote',
+        'deleteBranchFromRemote'
     );
     // always force push all branches as any
     // scenario that rewrites history

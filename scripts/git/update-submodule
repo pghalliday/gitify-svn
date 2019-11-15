@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -e
+
+SUBPATH=$1
+ESCAPED_SUBPATH=$(printf %q "$SUBPATH")
+REF=$2
+
+git update-index --cacheinfo 160000,$REF,$ESCAPED_SUBPATH

@@ -1,3 +1,7 @@
+- name: add git-core repository
+  apt_repository:
+    repo: ppa:git-core/ppa
+
 - name: install git server packages
   apt:
     name: [

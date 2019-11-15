@@ -1,0 +1,16 @@
+#!/bin/bash
+
+set -e
+
+SUBPATH=$1
+ESCAPED_SUBPATH=$(printf %q "$SUBPATH")
+URL=$2
+REF=$3
+CACHE_INFO=160000,$REF,$ESCAPED_SUBPATH
+
+mkdir -p $ESCAPED_SUBPATH
+echo -e "[submodule \"$SUBPATH\"]" >> .gitmodules
+echo -e "\tpath = $SUBPATH" >> .gitmodules
+echo -e "\turl = $URL" >> .gitmodules
+git update-index --add --cacheinfo $CACHE_INFO
+git add .gitmodules
