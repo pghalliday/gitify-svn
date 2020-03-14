@@ -38,7 +38,7 @@
     "@babel/preset-env": "^7.6.3",
     "@babel/register": "^7.6.2",
     "@istanbuljs/nyc-config-babel": "^2.1.1",
-    "acorn": "^7.1.0",
+    "acorn": "^7.1.1",
     "alarmist": "^1.0.27",
     "alarmist-npm": "^1.0.6",
     "babel-plugin-istanbul": "^5.2.0",
